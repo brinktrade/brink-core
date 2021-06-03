@@ -1,0 +1,21 @@
+{
+  "name": "@brinkninja/brink-core",
+  "version": "0.1.0",
+  "dependencies": {
+    "@openzeppelin/contracts": "3.4.1-solc-0.7-2"
+  },
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test"
+  },
+  "description": "Core contracts for Brink accounts",
+  "author": "@mikec & @kyrrui",
+  "license": "MIT",
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.0.2",
+    "chai": "^4.3.4",
+    "ethers": "^5.1.0",
+    "hardhat": "^2.1.2",
+    "moment": "^2.29.1"
+  }
+}
