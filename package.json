@@ -2,7 +2,8 @@
   "name": "@brinkninja/brink-core",
   "version": "0.1.0",
   "dependencies": {
-    "@openzeppelin/contracts": "3.4.1-solc-0.7-2"
+    "@openzeppelin/contracts": "3.4.1-solc-0.7-2",
+    "require-directory": "^2.1.1"
   },
   "scripts": {
     "compile": "hardhat compile",
@@ -12,6 +13,7 @@
   "author": "@mikec & @kyrrui",
   "license": "MIT",
   "devDependencies": {
+    "@brinkninja/test-helpers": "^0.1.0",
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "chai": "^4.3.4",
     "ethers": "^5.1.0",
