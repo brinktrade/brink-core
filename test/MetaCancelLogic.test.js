@@ -1,7 +1,10 @@
-const { testMetaTxEndpoint, BN, expectBN } = require('@brinkninja/test-helpers')
+const {
+  testMetaTxEndpoint, BN, chaiSolidity
+} = require('@brinkninja/test-helpers')
 const { shouldBehaveLikeMetaTransaction } = require('./MetaTransaction.behavior.js')
 const { setupMetaAccount, paramTypes, getSigners } = require('./helpers')
 const { CANCEL_PARAM_TYPES } = paramTypes
+const { expect } = chaiSolidity()
 
 function getSignerFn (signerName) {
   return async function () {
@@ -34,7 +37,6 @@ describe('MetaCancelLogic', function () {
       paramTypes: CANCEL_PARAM_TYPES,
       conditions: [
         {
-          only: true,
           describe: 'when given a valid cancel signature and call',
           getSigner: getSignerFn('metaAccountOwner'),
           unsignedParamsFn: function () { return [] },
@@ -42,7 +44,7 @@ describe('MetaCancelLogic', function () {
           testFn: function () {
             it('should successfully execute and flip the bit', async function () {
               const bitmap = await this.metaAccount.getReplayProtectionBitmap(0)
-              expectBN.equal(bitmap, BN(1))
+              expect(bitmap).to.equal(1)
             })
           }
         }

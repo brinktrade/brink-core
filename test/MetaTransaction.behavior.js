@@ -1,11 +1,9 @@
-const { expect } = require('chai')
-const { expectRevert } = require('@openzeppelin/test-helpers')
 const {
+  chaiSolidity,
   execMetaTx,
-  metaTxPromiseWithSignedData,
-  signMetaTx,
   nextAvailableBit
 } = require('@brinkninja/test-helpers')
+const { expect } = chaiSolidity()
 
 const shouldFn = ({
   contract,
@@ -59,25 +57,16 @@ const shouldFn = ({
         unsignedParams: this.metaBehavior_unsignedParams
       })
 
-      // attempt to execute with used bit should fail
-      const signedData = await signMetaTx({
+      await expect(execMetaTx({
         contract: this[contract],
         method,
         bitmapIndex,
         bit,
         signer: await getSigner(),
         paramTypes: this.metaBehavior_paramTypes,
-        params: this.metaBehavior_params
-      })
-      const { promise } = metaTxPromiseWithSignedData({
-        contract: this[contract],
-        method,
-        bitmapIndex,
-        bit,
-        unsignedParams: this.metaBehavior_unsignedParams,
-        signedData
-      })
-      await expectRevert(promise, 'MetaTxBase: bit is used')
+        params: this.metaBehavior_params,
+        unsignedParams: this.metaBehavior_unsignedParams
+      })).to.be.revertedWith('MetaTxBase: bit is used')
     })
   })
 }

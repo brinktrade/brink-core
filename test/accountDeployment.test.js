@@ -1,7 +1,7 @@
-const { expect } = require('chai')
 const { ethers } = require('hardhat')
-const { deployData } = require('@brinkninja/test-helpers')
+const { deployData, chaiSolidity } = require('@brinkninja/test-helpers')
 const { setupDeployers } = require('./helpers')
+const { expect } = chaiSolidity()
 
 const chainId = 1
 

@@ -1,6 +1,6 @@
-const { expect } = require('chai')
 const { ethers } = require('hardhat')
 const {
+  chaiSolidity,
   encodeFunctionCall,
   signMetaTx,
   splitCallData,
@@ -10,6 +10,7 @@ const {
 } = require('@brinkninja/test-helpers')
 const { paramTypes, setupDeployers } = require('./helpers')
 const { EXECUTE_PARTIAL_SIGNED_DELEGATE_CALL_PARAM_TYPES } = paramTypes
+const { expect } = chaiSolidity()
 
 const chainId = 1
 
