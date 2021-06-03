@@ -1,7 +1,7 @@
-const { expect } = require('chai')
 const { ethers } = require('hardhat')
-const { setupMetaAccount } = require('./helpers/setup')
-const { BN, BN18 } = require('./helpers/bignumber')
+const { BN, BN18, chaiSolidity } = require('@brinkninja/test-helpers')
+const { setupMetaAccount, getSigners } = require('./helpers')
+const { expect } = chaiSolidity()
 
 describe('AccountLogic', function () {
   beforeEach(async function () {
@@ -11,7 +11,7 @@ describe('AccountLogic', function () {
 
   describe('pay ETH to contract', function () {
     beforeEach(async function () {
-      this.ethStoreAccount = (await ethers.getSigners())[0]
+      this.ethStoreAccount = (await getSigners()).defaultAccount
       this.ethSendAmount = BN(3).mul(BN18)
       
       await this.ethStoreAccount.sendTransaction({
