@@ -5,6 +5,7 @@ pragma solidity ^0.7.0;
 import "../Called/CallExecutable.sol";
 import "../MetaTransactions/MetaCallLogic.sol";
 import "../MetaTransactions/MetaCancelLogic.sol";
+import "../Transactions/CallLogic.sol";
 
 /**
  * @dev Logic for all account functionality.
@@ -12,7 +13,7 @@ import "../MetaTransactions/MetaCancelLogic.sol";
  * Deployed once. Used as the "implementation" address for many Proxy contracts
  * that are owned by users.
  */
-contract AccountLogic is CallExecutable, MetaCallLogic, MetaCancelLogic {
+contract AccountLogic is CallExecutable, MetaCallLogic, MetaCancelLogic, CallLogic {
 
   /** 
    * @dev Stores the address of a CallExecutor contract. CallExecutor is used
