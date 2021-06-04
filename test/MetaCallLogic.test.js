@@ -5,7 +5,9 @@ const {
   BN, BN18,
   encodeFunctionCall,
   testMetaTxEndpoint,
-  deployTestTokens
+  deployTestTokens,
+  randomAddress,
+  splitCallData
 } = require('@brinkninja/test-helpers')
 const { expect } = chaiSolidity()
 const { shouldBehaveLikeMetaTransaction } = require('./MetaTransaction.behavior.js')
@@ -13,8 +15,7 @@ const { paramTypes, setupMetaAccount, getSigners } = require('./helpers')
 const {
   EXECUTE_CALL_PARAM_TYPES,
   EXECUTE_DELEGATE_CALL_PARAM_TYPES,
-  EXECUTE_PARTIAL_SIGNED_DELEGATE_CALL_PARAM_TYPES,
-  LIMIT_SWAP_TOKEN_TO_TOKEN_PARAM_TYPES
+  EXECUTE_PARTIAL_SIGNED_DELEGATE_CALL_PARAM_TYPES
 } = paramTypes
 
 function getSignerFn (signerName) {
@@ -26,27 +27,24 @@ function getSignerFn (signerName) {
 
 describe('MetaCallLogic', function () {
   beforeEach(async function () {
-    const TestDelegated = await ethers.getContractFactory('TestDelegated')
-    const TestMetaDelegated = await ethers.getContractFactory('TestMetaDelegated')
-    const TestFulfillSwap = await ethers.getContractFactory('TestFulfillSwap')
-
-    this.transferRecipient = (await getSigners()).transferRecipient
-
     const { tokenA, tokenB } = await deployTestTokens()
-    const { metaAccount } = await setupMetaAccount()
-    this.testFulfillSwap = await TestFulfillSwap.deploy()
-
-    // use TestMetaDelegated here so all events/functions for Delegated contract
-    // calls are available
-    this.metaAccount = await TestMetaDelegated.attach(metaAccount.address)
-
-    this.testDelegated = await TestDelegated.deploy()
     this.tokenA = tokenA
     this.tokenB = tokenB
+
+    const { metaAccount } = await setupMetaAccount()
+    this.metaAccount = metaAccount
+
+    const TestDelegated = await ethers.getContractFactory('TestDelegated')
+    this.testDelegated = await TestDelegated.deploy()
+
+    const TestFulfillSwap = await ethers.getContractFactory('TestFulfillSwap')
+    this.testFulfillSwap = await TestFulfillSwap.deploy()
 
     this.latestBlock = BN(await ethers.provider.getBlockNumber())
     this.expiryBlock = this.latestBlock.add(BN(1000)) // 1,000 blocks from now
     this.expiredBlock = this.latestBlock.sub(BN(1)) // 1 block ago
+
+    this.transferRecipient = (await getSigners()).transferRecipient
   })
 
   describe('executeCall', function () {
@@ -187,91 +185,59 @@ describe('MetaCallLogic', function () {
     })
   })
 
-  // TODO: replace limitSwapDelegated with a mock delegated
+  describe('executePartialSignedDelegateCall', function () {
+    describe('delegate call with signed and unsigned params', function () {
+      beforeEach(async function () {
+        this.mockUint = BN18
+        this.mockInt = -12345
+        this.mockAddress = (await randomAddress()).address
 
-  // describe('executePartialSignedDelegateCall', function () {
-  //   describe('LimitSwapDelegated.tokenToToken', function () {
-  //     beforeEach(async function () {
-  //       this.tokenIn = this.tokenA.address
-  //       this.tokenOut = this.tokenB.address
-  //       this.tokenInAmount = BN(333).mul(BN18)
-  //       this.tokenOutAmount = BN(444).mul(BN18)
+        const numSignedParams = 2
+        this.testCallData = splitCallData(encodeFunctionCall(
+          'testEvent',
+          ['uint256', 'int24', 'address'],
+          [
+            this.mockUint.toString(),
+            this.mockInt,
+            this.mockAddress
+          ]
+        ), numSignedParams)
 
-  //       await this.tokenA.mint(this.metaAccount.address, this.tokenInAmount)
-  //       await this.tokenB.mint(this.testFulfillSwap.address, this.tokenOutAmount)
+        this.metaBehavior_paramTypes = EXECUTE_PARTIAL_SIGNED_DELEGATE_CALL_PARAM_TYPES
+        this.metaBehavior_params = [
+          this.testDelegated.address,
+          this.testCallData.signedData
+        ]
 
-  //       this.fulfillSwapCallData = encodeFunctionCall(
-  //         'fulfillTokenOutSwap',
-  //         ['address', 'uint', 'address'],
-  //         [
-  //           this.tokenOut,
-  //           this.tokenOutAmount.toString(),
-  //           this.metaAccount.address
-  //         ]
-  //       )
+        this.metaBehavior_unsignedParams = [this.testCallData.unsignedData]
+      })
 
-  //       const swapTokenToTokenParamTypes = LIMIT_SWAP_TOKEN_TO_TOKEN_PARAM_TYPES.map(t => t.type)
+      shouldBehaveLikeMetaTransaction({
+        contract: 'metaAccount',
+        method: 'executePartialSignedDelegateCall',
+        getSigner: getSignerFn('metaAccountOwner')
+      })
 
-  //       const delegateCallData = encodeFunctionCall(
-  //         'tokenToToken',
-  //         swapTokenToTokenParamTypes,
-  //         [
-  //           this.tokenIn,
-  //           this.tokenOut,
-  //           this.tokenInAmount.toString(),
-  //           this.tokenOutAmount.toString(),
-  //           this.expiryBlock.toString(),
-  //           this.testFulfillSwap.address,
-  //           this.fulfillSwapCallData
-  //         ]
-  //       ).slice(2)
-
-  //       // signed data is the prefix + fnSig + signedParams
-  //       const numSignedParams = 5
-  //       const bytes32SlotLen = 64
-  //       const fnSigLen = 8
-  //       const signedDataLen = fnSigLen + (numSignedParams * bytes32SlotLen)
-  //       const signedData = `0x${delegateCallData.slice(0, signedDataLen)}`
-
-  //       // unsigned data is the rest
-  //       const unsignedData = `0x${delegateCallData.slice(signedDataLen)}`
-
-  //       this.metaBehavior_paramTypes = EXECUTE_PARTIAL_SIGNED_DELEGATE_CALL_PARAM_TYPES
-  //       this.metaBehavior_params = [
-  //         this.limitSwapDelegated.address,
-  //         signedData
-  //       ]
-
-  //       this.metaBehavior_unsignedParams = [unsignedData]
-  //     })
-
-  //     shouldBehaveLikeMetaTransaction({
-  //       contract: 'metaAccount',
-  //       method: 'executePartialSignedDelegateCall',
-  //       getSigner: getSignerFn('metaAccountOwner')
-  //     })
-
-  //     testMetaTxEndpoint.call(this, {
-  //       contract: 'metaAccount',
-  //       method: 'executePartialSignedDelegateCall',
-  //       paramTypes: EXECUTE_PARTIAL_SIGNED_DELEGATE_CALL_PARAM_TYPES,
-  //       conditions: [
-  //         {
-  //           describe: 'when executing a valid call',
-  //           getSigner: getSignerFn('metaAccountOwner'),
-  //           paramsFn: function () { return this.metaBehavior_params },
-  //           unsignedParamsFn: function () { return this.metaBehavior_unsignedParams },
-  //           testFn: function () {
-  //             it('should execute successfully', async function () {
-  //               expect(await this.tokenA.balanceOf(this.metaAccount.address)).to.equal(BN(0))
-  //               expect(await this.tokenB.balanceOf(this.metaAccount.address)).to.equal(this.tokenOutAmount)
-  //               expect(await this.tokenA.balanceOf(this.testFulfillSwap.address)).to.equal(this.tokenInAmount)
-  //               expect(await this.tokenB.balanceOf(this.testFulfillSwap.address)).to.equal(BN(0))
-  //             })
-  //           }
-  //         }
-  //       ]
-  //     })
-  //  })
-  // })
+      testMetaTxEndpoint.call(this, {
+        contract: 'metaAccount',
+        method: 'executePartialSignedDelegateCall',
+        paramTypes: EXECUTE_PARTIAL_SIGNED_DELEGATE_CALL_PARAM_TYPES,
+        conditions: [
+          {
+            describe: 'when executing a valid call',
+            getSigner: getSignerFn('metaAccountOwner'),
+            paramsFn: function () { return this.metaBehavior_params },
+            unsignedParamsFn: function () { return this.metaBehavior_unsignedParams },
+            testFnWithoutSend: function () {      
+              it('emits an MockParamsEvent event', async function () {
+                const { promise } = await this.txCall()
+                await expect(promise).to.emit(this.metaAccount, 'MockParamsEvent')
+                  .withArgs(this.mockUint, this.mockInt, this.mockAddress);
+              })
+            }
+          }
+        ]
+      })
+   })
+  })
 })

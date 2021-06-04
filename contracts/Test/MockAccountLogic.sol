@@ -3,8 +3,9 @@
 pragma solidity ^0.7.0;
 
 import "../Account/AccountLogic.sol";
+import './ITestDelegatedEvents.sol';
 
-contract MockAccountLogic is AccountLogic {
+contract MockAccountLogic is AccountLogic, ITestDelegatedEvents {
 
   // keccak256("MockAccountLogic.mockBlockNum") : Storage pointer to mockBlockNum address
   bytes32 internal constant _mockBlockNumPtr = 0x5dc2b8ac29285b2e2e61b837cc8844958991436e57577f14db15ca783a441fc2;

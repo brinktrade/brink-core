@@ -2,9 +2,9 @@
 
 pragma solidity ^0.7.0;
 
-contract TestDelegated {
-  event ExecutedTestCall();
+import "./ITestDelegatedEvents.sol";
 
+contract TestDelegated is ITestDelegatedEvents {
   bool private _called;
 
   function testNoReturn() external {
@@ -28,5 +28,9 @@ contract TestDelegated {
     bool success;
     (success, ) = recipient.call{value: amount}("");
     require(success, "TestDelegated: testTransferETH call failed");
+  }
+
+  function testEvent (uint256 mockUint, int24 mockInt, address mockAddress) external {
+    emit MockParamsEvent(mockUint, mockInt, mockAddress);
   }
 }

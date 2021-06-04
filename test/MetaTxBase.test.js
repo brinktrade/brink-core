@@ -15,18 +15,14 @@ const { getSigners, setupMetaAccount } = require('./helpers')
 describe('MetaTxBase', function () {
   beforeEach(async function () {
     const { tokenA, tokenB } = await deployTestTokens()
-    const { metaAccount } = await setupMetaAccount()
-
-    const TestDelegated = await ethers.getContractFactory('TestDelegated')
-    const TestMetaDelegated = await ethers.getContractFactory('TestMetaDelegated')
-
-    // use TestMetaDelegated here so all events/functions for MetaCallLogic and TestDelegated
-    // are accessible on `this.metaAccount`
-    this.metaAccount = await TestMetaDelegated.attach(metaAccount.address)
-
-    this.testDelegated = await TestDelegated.deploy()
     this.tokenA = tokenA
     this.tokenB = tokenB
+
+    const { metaAccount } = await setupMetaAccount()
+    this.metaAccount = metaAccount
+
+    const TestDelegated = await ethers.getContractFactory('TestDelegated')
+    this.testDelegated = await TestDelegated.deploy()
   })
 
   describe('Replay protection', function () {
