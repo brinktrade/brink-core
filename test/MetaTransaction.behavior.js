@@ -1,3 +1,4 @@
+const { ethers } = require('hardhat')
 const {
   chaiSolidity,
   execMetaTx,
@@ -21,7 +22,7 @@ const shouldFn = ({
         this.bitmapIndex = bitmapIndex
         this.bit = bit
 
-        const { receipt, signedData } = await execMetaTx({
+        const { tx, signedData } = await execMetaTx({
           contract: this[contract],
           method,
           bitmapIndex,
@@ -32,7 +33,8 @@ const shouldFn = ({
           params: this.metaBehavior_params,
           value: this.metaBehavior_value
         })
-        this.receipt = receipt
+        this.tx = tx
+        this.receipt = await ethers.provider.getTransactionReceipt(tx.hash)
         this.signedData = signedData
       })
     
