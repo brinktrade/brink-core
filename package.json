@@ -17,6 +17,7 @@
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "ethers": "^5.1.0",
     "hardhat": "^2.1.2",
-    "moment": "^2.29.1"
+    "moment": "^2.29.1",
+    "@resolver-engine/core": "^0.3.3"
   }
 }

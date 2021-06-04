@@ -4,14 +4,16 @@ const getSigners = async () => {
     metaAccountOwner,
     proxyDeployer,
     badAccount,
-    transferRecipient
+    transferRecipient,
+    ethStoreAccount
   ] = await ethers.getSigners()
   return {
     defaultAccount,
     metaAccountOwner,
     proxyDeployer,
     badAccount,
-    transferRecipient
+    transferRecipient,
+    ethStoreAccount
   }
 }
 
