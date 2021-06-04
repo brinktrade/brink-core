@@ -3,26 +3,27 @@ const {
   chaiSolidity,
   encodeFunctionCall,
   signMetaTx,
-  splitCallData,
   deployData,
   deployTestTokens,
   BN, BN18
 } = require('@brinkninja/test-helpers')
-const { paramTypes, setupDeployers } = require('./helpers')
-const { EXECUTE_PARTIAL_SIGNED_DELEGATE_CALL_PARAM_TYPES } = paramTypes
+const { paramTypes, setupDeployers, getSigners } = require('./helpers')
+const { EXECUTE_DELEGATE_CALL_PARAM_TYPES } = paramTypes
 const { expect } = chaiSolidity()
 
 const chainId = 1
 
 describe('DeployAndExecute', function () {
   beforeEach(async function () {
-    const [ ethStoreAccount, proxyOwner ] = await ethers.getSigners()
-    this.ethStoreAccount = ethStoreAccount
-    this.proxyOwner = proxyOwner
+    const signers = await getSigners()
+    this.ethStoreAccount = signers.defaultAccount
+    this.proxyOwner = signers.metaAccountOwner
+    this.recipient = signers.transferRecipient
 
     this.Proxy = await ethers.getContractFactory('Proxy')
     this.AccountLogic = await ethers.getContractFactory('AccountLogic')
     this.CallExecutor = await ethers.getContractFactory('CallExecutor')
+    this.TestDelegated = await ethers.getContractFactory('TestDelegated')
 
     const { singletonFactory, deployAndExecute } = await setupDeployers()
     this.singletonFactory = singletonFactory
@@ -40,6 +41,8 @@ describe('DeployAndExecute', function () {
     this.metaAccountImpl = await this.AccountLogic.deploy(callExecutor.address)
     this.salt = ethers.utils.formatBytes32String('some.salt')
 
+    this.testDelegated = await this.TestDelegated.deploy()
+
     const { address, initCode } = deployData(
       this.singletonFactory.address,
       this.Proxy.bytecode,
@@ -50,80 +53,59 @@ describe('DeployAndExecute', function () {
     )
     this.accountAddress = address
     this.accountCode = initCode
+
+    this.iRecipientBalance = await ethers.provider.getBalance(this.recipient.address)
   })
 
-  it('TMP PLACEHOLDER', function () {
+  describe('deploy account and delegate call in one tx', function () {
+    beforeEach(async function () {
+      this.ethAmount = BN(4).mul(BN18)
 
+      this.testTransferETHCallData = encodeFunctionCall(
+        'testTransferETH',
+        ['uint', 'address'],
+        [this.ethAmount, this.recipient.address]
+      )
+
+      const paramTypes = EXECUTE_DELEGATE_CALL_PARAM_TYPES
+      const params = [
+        this.testDelegated.address,
+        this.testTransferETHCallData
+      ]
+
+      const { signature } = await signMetaTx({
+        contract: { address: this.accountAddress },
+        method: 'executeDelegateCall',
+        bitmapIndex: BN(0),
+        bit: BN(1),
+        signer: this.proxyOwner,
+        paramTypes,
+        params
+      })
+
+      // data for the tokenToEth swap call
+      const execData = (await this.metaAccountImpl.populateTransaction.executeDelegateCall.apply(this, [
+        BN(0), BN(1), ...params, signature
+      ])).data
+
+      // send ETH to undeployed account address
+      await this.ethStoreAccount.sendTransaction({
+        to: this.accountAddress,
+        value: this.ethAmount
+      })
+
+      // batched deploy account + executeDelegateCall
+      await this.deployAndExecute.deployAndExecute(this.accountCode, this.salt, execData)
+
+      // get final recipient balance
+      this.fRecipientBalance = await ethers.provider.getBalance(this.recipient.address)
+    })
+
+    it('should deploy the account and delegatecall testTransferETH() to transfer ETH', async function () {
+      expect(await ethers.provider.getCode(this.accountAddress)).to.not.equal('0x')
+      expect(await this.tokenA.balanceOf(this.accountAddress)).to.equal(0)
+      expect(await ethers.provider.getBalance(this.accountAddress)).to.equal(0)
+      expect(this.fRecipientBalance.sub(this.iRecipientBalance)).to.equal(this.ethAmount)
+    })
   })
-
-  // TODO: remove limitSwapDelegated as a dependency to this test and replace with a mock
-
-  // describe('deterministic deploy batched with a delegated token to ETH swap', function () {
-  //   beforeEach(async function () {
-  //     this.tokenASwapAmount = BN(2).mul(BN18)
-  //     this.ethSwapAmount = BN(4).mul(BN18)
-  //     await this.ethStoreAccount.sendTransaction({
-  //       to: this.testFulfillSwap.address,
-  //       value: this.ethSwapAmount
-  //     })
-
-  //     const numSignedParams = 4
-
-  //     this.successCall = splitCallData(encodeFunctionCall(
-  //       'tokenToEth',
-  //       LIMIT_SWAP_TOKEN_TO_ETH_PARAM_TYPES.map(t => t.type),
-  //       [
-  //         this.tokenA.address,
-  //         this.tokenASwapAmount.toString(),
-  //         this.ethSwapAmount.toString(),
-  //         this.expiryBlock.toString(),
-  //         this.testFulfillSwap.address,
-  //         encodeFunctionCall(
-  //           'fulfillEthOutSwap',
-  //           ['uint', 'address'],
-  //           [ this.ethSwapAmount.toString(), this.accountAddress ]
-  //         )
-  //       ]
-  //     ).slice(2), numSignedParams)
-
-  //     this.successCallData = encodeFunctionCall(
-  //       'fulfillEthOutSwap',
-  //       ['uint', 'address'],
-  //       [ this.ethSwapAmount.toString(), this.accountAddress ]
-  //     )
-
-  //     const paramTypes = EXECUTE_PARTIAL_SIGNED_DELEGATE_CALL_PARAM_TYPES
-  //     const params = [
-  //       this.limitSwapDelegated.address,
-  //       this.successCall.signedData
-  //     ]
-
-  //     const { signature } = await signMetaTx({
-  //       contract: { address: this.accountAddress },
-  //       method: 'executePartialSignedDelegateCall',
-  //       bitmapIndex: BN(0),
-  //       bit: BN(1),
-  //       signer: this.proxyOwner,
-  //       paramTypes,
-  //       params
-  //     })
-
-  //     // data for the tokenToEth swap call
-  //     const execData = (await this.metaAccountImpl.populateTransaction.executePartialSignedDelegateCall.apply(this, [
-  //       BN(0), BN(1), ...params, signature, this.successCall.unsignedData
-  //     ])).data
-
-  //     // mint tokenA to undeployed account address
-  //     await this.tokenA.mint(this.accountAddress, this.tokenASwapAmount)
-
-  //     // batched deploy account + executePartialSignedDelegateCall to LimitSwapDelegated.tokenToEth()
-  //     await this.deployAndExecute.deployAndExecute(this.accountCode, this.salt, execData)
-  //   })
-
-//     it('should deploy the account and swap the account token balance for ETH', async function () {
-//       expect(await ethers.provider.getCode(this.accountAddress)).to.not.equal('0x')
-//       expect(await this.tokenA.balanceOf(this.accountAddress)).to.equal(BN(0))
-//       expect(await ethers.provider.getBalance(this.accountAddress)).to.equal(this.ethSwapAmount)
-//     })
-//   })
 })

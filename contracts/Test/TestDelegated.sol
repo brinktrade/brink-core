@@ -24,4 +24,9 @@ contract TestDelegated {
     emit ExecutedTestCall();
   }
 
+  function testTransferETH (uint256 amount, address recipient) external {
+    bool success;
+    (success, ) = recipient.call{value: amount}("");
+    require(success, "TestDelegated: testTransferETH call failed");
+  }
 }
