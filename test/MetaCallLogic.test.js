@@ -7,7 +7,8 @@ const {
   testMetaTxEndpoint,
   deployTestTokens,
   randomAddress,
-  splitCallData
+  splitCallData,
+  metaTxPromise
 } = require('@brinkninja/test-helpers')
 const { expect } = chaiSolidity()
 const { shouldBehaveLikeMetaTransaction } = require('./MetaTransaction.behavior.js')
@@ -44,6 +45,7 @@ describe('MetaCallLogic', function () {
     this.expiryBlock = this.latestBlock.add(BN(1000)) // 1,000 blocks from now
     this.expiredBlock = this.latestBlock.sub(BN(1)) // 1 block ago
 
+    this.metaAccountOwner = (await getSigners()).metaAccountOwner
     this.transferRecipient = (await getSigners()).transferRecipient
   })
 
@@ -218,25 +220,23 @@ describe('MetaCallLogic', function () {
         getSigner: getSignerFn('metaAccountOwner')
       })
 
-      testMetaTxEndpoint.call(this, {
-        contract: 'metaAccount',
-        method: 'executePartialSignedDelegateCall',
-        paramTypes: EXECUTE_PARTIAL_SIGNED_DELEGATE_CALL_PARAM_TYPES,
-        conditions: [
-          {
-            describe: 'when executing a valid call',
-            getSigner: getSignerFn('metaAccountOwner'),
-            paramsFn: function () { return this.metaBehavior_params },
-            unsignedParamsFn: function () { return this.metaBehavior_unsignedParams },
-            testFnWithoutSend: function () {      
-              it('emits an MockParamsEvent event', async function () {
-                const { promise } = await this.txCall()
-                await expect(promise).to.emit(this.metaAccount, 'MockParamsEvent')
-                  .withArgs(this.mockUint, this.mockInt, this.mockAddress);
-              })
-            }
-          }
-        ]
+      it('should execute a partial signed delegated call', async function () {
+        const { promise } = await metaTxPromise({
+          contract: this.metaAccount,
+          method: 'executePartialSignedDelegateCall',
+          bitmapIndex: BN(0),
+          bit: BN(1),
+          signer: this.metaAccountOwner,
+          paramTypes: EXECUTE_PARTIAL_SIGNED_DELEGATE_CALL_PARAM_TYPES,
+          params: [
+            this.testDelegated.address,
+            this.testCallData.signedData
+          ],
+          unsignedParams: [this.testCallData.unsignedData]
+        })
+        await expect(promise)
+                .to.emit(this.metaAccount, 'MockParamsEvent')
+                .withArgs(this.mockUint, this.mockInt, this.mockAddress)
       })
    })
   })
