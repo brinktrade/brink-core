@@ -10,7 +10,7 @@ import "./ProxyConstant.sol";
  * The contract follows a standard "upgradable" pattern. It's fallback function
  * proxies all calls (via delegatecall) to the contract deployed at the
  * `implementation` address. For the initial version, `implementation` is
- * an instance of AccountLogic.sol. The `implementation` can be changed only by
+ * an instance of Account.sol. The `implementation` can be changed only by
  * `proxyOwner` (aka the Brink user who owns this account).
  */
 contract Proxy is ProxyConstant {

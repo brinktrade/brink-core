@@ -2,15 +2,15 @@
 
 pragma solidity ^0.7.0;
 
-import "../Account/AccountLogic.sol";
+import "../Account/Account.sol";
 import './ITestDelegatedEvents.sol';
 
-contract MockAccountLogic is AccountLogic, ITestDelegatedEvents {
+contract MockAccount is Account, ITestDelegatedEvents {
 
-  // keccak256("MockAccountLogic.mockBlockNum") : Storage pointer to mockBlockNum address
-  bytes32 internal constant _mockBlockNumPtr = 0x5dc2b8ac29285b2e2e61b837cc8844958991436e57577f14db15ca783a441fc2;
+  // keccak256("MockAccount.mockBlockNum") : Storage pointer to mockBlockNum address
+  bytes32 internal constant _mockBlockNumPtr = 0x309cc50dd5fa3f2b7dda8552a2789bf8dec0e6e9d7bce3582758e21eab93e630;
 
-  constructor (CallExecutor callExecutor) AccountLogic(callExecutor) { }
+  constructor (CallExecutor callExecutor) Account(callExecutor) { }
 
   // override so we can mock the current block number,
   // since mining blocks on ganache is too slow for the tests
