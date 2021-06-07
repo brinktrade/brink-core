@@ -34,11 +34,9 @@ contract Proxy is ProxyConstant {
       address(this)
     ));
 
-    bytes32 proxyOwnerPtr = keccak256(abi.encodePacked("Proxy.owner", proxyOwner));
-
     assembly {
       sstore(IMPLEMENTATION_PTR, implementation)
-      sstore(proxyOwnerPtr, 1)
+      sstore(OWNER_PTR, proxyOwner)
       sstore(DOMAIN_SEPARATOR_PTR, domainSeparator)
     }
   }

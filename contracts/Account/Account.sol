@@ -37,7 +37,7 @@ contract Account is CallExecutable, ProxyGettable {
   /// @param to Address of the external contract to call
   /// @param data Call data to execute
   function externalCall(uint256 value, address to, bytes memory data) external {
-    require(_isProxyOwner(msg.sender), "NOT_OWNER");
+    require(_proxyOwner() == msg.sender, "NOT_OWNER");
     assembly {
       let result := call(gas(), to, value, add(data, 0x20), mload(data), 0, 0)
       if eq(result, 0) {
@@ -51,7 +51,7 @@ contract Account is CallExecutable, ProxyGettable {
   /// @param to Address of the external contract to delegatecall
   /// @param data Call data to execute
   function delegateCall(address to, bytes memory data) external {
-    require(_isProxyOwner(msg.sender), "NOT_OWNER");
+    require(_proxyOwner() == msg.sender, "NOT_OWNER");
     assembly {
       let result := delegatecall(gas(), to, add(data, 0x20), mload(data), 0, 0)
       if eq(result, 0) {
@@ -71,7 +71,7 @@ contract Account is CallExecutable, ProxyGettable {
       keccak256(abi.encode(META_CALL_TYPEHASH, value, to, keccak256(data))),
       signature
     );
-    require(_isProxyOwner(signer), "NOT_OWNER");
+    require(_proxyOwner() == signer, "NOT_OWNER");
     assembly {
       let result := call(gas(), to, value, add(data, 0x20), mload(data), 0, 0)
       if eq(result, 0) {
@@ -90,7 +90,7 @@ contract Account is CallExecutable, ProxyGettable {
       keccak256(abi.encode(META_DELEGATE_CALL_TYPEHASH, to, keccak256(data))),
       signature
     );
-    require(_isProxyOwner(signer), "NOT_OWNER");
+    require(_proxyOwner() == signer, "NOT_OWNER");
 
     assembly {
       let result := delegatecall(gas(), to, add(data, 0x20), mload(data), 0, 0)
@@ -114,7 +114,7 @@ contract Account is CallExecutable, ProxyGettable {
       keccak256(abi.encode(META_PARTIAL_SIGNED_DELEGATE_CALL_TYPEHASH, to, keccak256(data))),
       signature
     );
-    require(_isProxyOwner(signer), "NOT_OWNER");
+    require(_proxyOwner() == signer, "NOT_OWNER");
 
     bytes memory callData = abi.encodePacked(data, unsignedData);
 

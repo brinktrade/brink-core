@@ -55,8 +55,7 @@ describe('Proxy', function () {
     })
 
     it('should set proxyOwner', async function () {
-      const isOwner = await this.account.isProxyOwner(this.proxyOwner.address)
-      expect(isOwner).to.be.equal(true)
+      expect(await this.account.proxyOwner()).to.be.equal(this.proxyOwner.address)
     })
   })
 

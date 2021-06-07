@@ -18,14 +18,14 @@ contract ProxyGettable is ProxyConstant {
   }
 
   /**
-   * @dev Returns a boolean indicating if `owner` is a proxy owner
+   * @dev Returns the proxy owner address
    */
-  function isProxyOwner(address owner) public view returns (bool) {
-    return _isProxyOwner(owner);
+  function proxyOwner() public view returns (address) {
+    return _proxyOwner();
   }
 
   /**
-   * @dev Internal function to read the implementation address at constant the storage pointer
+   * @dev Internal function to read the implementation address
    */
   function _implementation() internal view returns (address impl) {
     bytes32 ptr = IMPLEMENTATION_PTR;
@@ -35,12 +35,12 @@ contract ProxyGettable is ProxyConstant {
   }
 
   /**
-   * @dev Internal function to read the boolean value stored at `owner` address
+   * @dev Internal function to read the proxy owner address
    */
-  function _isProxyOwner(address owner) internal view returns (bool isOwner) {
-    bytes32 ptr = keccak256(abi.encodePacked("Proxy.owner", owner)); 
+  function _proxyOwner() internal view returns (address owner) {
+    bytes32 ptr = OWNER_PTR;
     assembly {
-      isOwner := sload(ptr)
+      owner := sload(ptr)
     }
   }
 

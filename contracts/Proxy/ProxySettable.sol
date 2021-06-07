@@ -21,22 +21,12 @@ contract ProxySettable is ProxyConstant {
   }
 
   /**
-   * @dev Internal function to add a proxy owner by storing `1` at the provided address
+   * @dev Internal function to set the proxy owner address
    */
-  function _addProxyOwner(address proxyOwner) internal {
-    bytes32 ptr = keccak256(abi.encodePacked("Proxy.owner", proxyOwner));
+  function _setProxyOwner(address proxyOwner) internal {
+    bytes32 ptr = OWNER_PTR;
     assembly {
-      sstore(ptr, 1)
-    }
-  }
-
-  /**
-   * @dev Internal function to remove a proxy owner by storing `0` at the provided address
-   */
-  function _removeProxyOwner(address proxyOwner) internal {
-    bytes32 ptr = keccak256(abi.encodePacked("Proxy.owner", proxyOwner));
-    assembly {
-      sstore(ptr, 0)
+      sstore(ptr, proxyOwner)
     }
   }
 }
