@@ -10,7 +10,7 @@ describe('Deploy Account', function () {
     const [a, proxyOwner] = await ethers.getSigners()
     this.proxyOwner = proxyOwner.address
     this.Proxy = await ethers.getContractFactory('Proxy')
-    this.AccountLogic = await ethers.getContractFactory('AccountLogic')
+    this.Account = await ethers.getContractFactory('Account')
 
     const { singletonFactory, singletonFactoryCaller } = await setupDeployers()
     this.singletonFactory = singletonFactory
@@ -19,7 +19,7 @@ describe('Deploy Account', function () {
     const CallExecutor = await ethers.getContractFactory('CallExecutor')
     const callExecutor = await CallExecutor.deploy()
 
-    this.metaAccountImpl = await this.AccountLogic.deploy(callExecutor.address)
+    this.metaAccountImpl = await this.Account.deploy(callExecutor.address)
     const salt = ethers.utils.formatBytes32String('some.salt')
 
     const { address, initCode } = deployData(
@@ -35,7 +35,7 @@ describe('Deploy Account', function () {
 
     await singletonFactoryCaller.deploy(this.accountCode, salt)
 
-    this.account = await this.AccountLogic.attach(this.accountAddress)
+    this.account = await this.Account.attach(this.accountAddress)
   })
 
   it('should deploy proxy contract at the predeployed computed address', async function () {

@@ -7,8 +7,7 @@ const {
   deployTestTokens,
   BN, BN18
 } = require('@brinkninja/test-helpers')
-const { paramTypes, setupDeployers, getSigners } = require('./helpers')
-const { EXECUTE_DELEGATE_CALL_PARAM_TYPES } = paramTypes
+const { setupDeployers, getSigners } = require('./helpers')
 const { expect } = chaiSolidity()
 
 const chainId = 1
@@ -21,9 +20,9 @@ describe('DeployAndExecute', function () {
     this.recipient = signers.transferRecipient
 
     this.Proxy = await ethers.getContractFactory('Proxy')
-    this.AccountLogic = await ethers.getContractFactory('AccountLogic')
+    this.Account = await ethers.getContractFactory('Account')
     this.CallExecutor = await ethers.getContractFactory('CallExecutor')
-    this.TestDelegated = await ethers.getContractFactory('TestDelegated')
+    this.testAccountCalls = await ethers.getContractFactory('TestAccountCalls')
 
     const { singletonFactory, deployAndExecute } = await setupDeployers()
     this.singletonFactory = singletonFactory
@@ -38,10 +37,10 @@ describe('DeployAndExecute', function () {
     this.expiredBlock = this.latestBlock.sub(BN(1)) // 1 block ago
 
     const callExecutor = await this.CallExecutor.deploy()
-    this.metaAccountImpl = await this.AccountLogic.deploy(callExecutor.address)
+    this.metaAccountImpl = await this.Account.deploy(callExecutor.address)
     this.salt = ethers.utils.formatBytes32String('some.salt')
 
-    this.testDelegated = await this.TestDelegated.deploy()
+    this.testAccountCalls = await this.testAccountCalls.deploy()
 
     const { address, initCode } = deployData(
       this.singletonFactory.address,
@@ -67,25 +66,21 @@ describe('DeployAndExecute', function () {
         [this.ethAmount, this.recipient.address]
       )
 
-      const paramTypes = EXECUTE_DELEGATE_CALL_PARAM_TYPES
       const params = [
-        this.testDelegated.address,
+        this.testAccountCalls.address,
         this.testTransferETHCallData
       ]
 
       const { signature } = await signMetaTx({
         contract: { address: this.accountAddress },
-        method: 'executeDelegateCall',
-        bitmapIndex: BN(0),
-        bit: BN(1),
+        method: 'metaDelegateCall',
         signer: this.proxyOwner,
-        paramTypes,
         params
       })
 
       // data for the tokenToEth swap call
-      const execData = (await this.metaAccountImpl.populateTransaction.executeDelegateCall.apply(this, [
-        BN(0), BN(1), ...params, signature
+      const execData = (await this.metaAccountImpl.populateTransaction.metaDelegateCall.apply(this, [
+        ...params, signature
       ])).data
 
       // send ETH to undeployed account address
@@ -94,7 +89,7 @@ describe('DeployAndExecute', function () {
         value: this.ethAmount
       })
 
-      // batched deploy account + executeDelegateCall
+      // batched deploy account + metaDelegateCall
       await this.deployAndExecute.deployAndExecute(this.accountCode, this.salt, execData)
 
       // get final recipient balance
