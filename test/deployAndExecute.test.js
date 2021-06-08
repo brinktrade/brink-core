@@ -37,7 +37,7 @@ describe('DeployAndExecute', function () {
     this.expiredBlock = this.latestBlock.sub(BN(1)) // 1 block ago
 
     const callExecutor = await this.CallExecutor.deploy()
-    this.metaAccountImpl = await this.Account.deploy(callExecutor.address)
+    this.metaAccountImpl = await this.Account.deploy(callExecutor.address, this.proxyOwner.address)
     this.salt = ethers.utils.formatBytes32String('some.salt')
 
     this.testAccountCalls = await this.testAccountCalls.deploy()
