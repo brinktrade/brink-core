@@ -50,16 +50,10 @@ contract ExecutorAccess {
     isExecutorMap[_executor] = true;
   }
 
-  /// removeExecutor, which allows an Admin to remove an Executor they added
+  /// removeExecutor, which allows an Admin to remove an Executor they added or Owner to remove any executor
   /// @param _executor the specified Executor Addresss to remove
-  function removeExecutor(address _executor) external onlyAdmin {
-    require(executorAdminMap[_executor] == msg.sender, "ExecutorAccess: Admin cannot remove an executor they did not add");
-    _removeExecutor(_executor);
-  }
-
-  /// ownerRemoveExecutor, which allows the Owner to remove any Executor
-  /// @param _executor the specified Executor Addresss to remove
-  function ownerRemoveExecutor(address _executor) external onlyOwner {
+  function removeExecutor(address _executor) external {
+    require(_isExecutorOwner(_executor), "ExecutorAccess: Admin cannot remove an executor they did not add.");
     _removeExecutor(_executor);
   }
 
@@ -69,9 +63,15 @@ contract ExecutorAccess {
   function isExecutor(address _executor) external view returns(bool) {
     return _isExecutor(_executor);
   }
+
   /// @dev internal helper to check if specified address is an Executor Address
   function _isExecutor(address _executor) internal view returns (bool) {
     return isExecutorMap[_executor];
+  }
+
+  /// @dev internal helper to check if specified address is the Executor Owner
+  function _isExecutorOwner(address _executor) internal view returns (bool) {
+    return executorAdminMap[_executor] == msg.sender || owner == msg.sender;
   }
 
   /// isAdmin, returns true if specified address is an Admin Address
@@ -80,6 +80,7 @@ contract ExecutorAccess {
   function isAdmin(address _admin) external view returns(bool) {
     return _isAdmin(_admin);
   }
+
   /// @dev internal helper to check if specified address is an Admin Address
   function _isAdmin(address _admin) internal view returns (bool) {
     return isAdminMap[_admin];
