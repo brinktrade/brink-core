@@ -13,7 +13,7 @@ const setupMetaAccount = async (owner) => {
   const accountOwner = owner || metaAccountOwner
   
   const callExecutor = await CallExecutor.deploy()
-  const impl_0 = await MockAccount.deploy(callExecutor.address)
+  const impl_0 = await MockAccount.deploy(callExecutor.address, accountOwner.address)
   const proxy = await Proxy.deploy(impl_0.address, accountOwner.address, chainId)
   const metaAccount = await ethers.getContractAt('MockAccountWithTestCalls', proxy.address)
 

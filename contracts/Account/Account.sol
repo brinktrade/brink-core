@@ -5,11 +5,12 @@ pragma solidity ^0.7.0;
 import "@openzeppelin/contracts/cryptography/ECDSA.sol";
 import "../Called/CallExecutable.sol";
 import "../Proxy/ProxyGettable.sol";
+import "../Access/ExecutorAccessController.sol";
 
 /// @title Brink account core
 /// @notice Deployed once and used by many Proxy contracts as the implementation contract
 /// @notice Uses EIP712 typed data signing standard https://github.com/ethereum/EIPs/pull/712
-contract Account is CallExecutable, ProxyGettable {
+contract Account is CallExecutable, ProxyGettable, ExecutorAccessController {
   /// @dev Typehash for signed metaCall() messages
   /// @dev keccak256("MetaCall(uint256 value,address to,bytes data)")
   bytes32 internal constant META_CALL_TYPEHASH =
@@ -27,7 +28,9 @@ contract Account is CallExecutable, ProxyGettable {
 
   /// @dev Constructor stores the address of the CallExecutor contract
   /// @dev CallExecutor is used as a call proxy to ensure that msg.sender is never the account address
-  constructor(CallExecutor callExecutor) {
+  constructor(CallExecutor callExecutor, address accessControlOwner) 
+    ExecutorAccessController(accessControlOwner) 
+  {
     _setCallExecutor(callExecutor);
   }
 
