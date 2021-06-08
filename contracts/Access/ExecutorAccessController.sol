@@ -2,8 +2,8 @@
 pragma solidity ^0.7.0;
 
 /// @author Brink
-/// @title Executor access for Brink transactions
-contract ExecutorAccess {
+/// @title Executor access controller for Brink transactions
+contract ExecutorAccessController {
 
   /// @dev owner of the contract
   address private owner;
