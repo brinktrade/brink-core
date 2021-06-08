@@ -29,8 +29,8 @@ contract ExecutorAccessController {
     _;
   }
 
-  /// @dev Constructor, which stores the address of the owner
-  /// @param _owner the specified owner address
+  /// @dev Stores the address of the owner of the ExecutorAccessController
+  /// @param _owner The owner of the ExecutorAccessController
   constructor(address _owner) {
     owner = _owner;
   }
