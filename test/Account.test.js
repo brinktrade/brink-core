@@ -28,7 +28,6 @@ describe('Account', function () {
     this.account = account
     await this.account.connect(this.defaultAccount).addAdmin(this.metaAccountOwner.address)
     await this.account.connect(this.metaAccountOwner).addExecutor(this.metaAccountOwner.address)
-    await this.account.connect(this.metaAccountOwner).addExecutor(this.defaultAccount.address)
   })
 
   describe('sending ETH to account address', function () {
