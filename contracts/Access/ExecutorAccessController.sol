@@ -64,7 +64,7 @@ contract ExecutorAccessController {
   /// @param executor The executor address
   function addExecutor(address executor) external onlyAdmin {
     require(executorAdmins[executor] == address(0), "EXECUTOR_EXISTS");
-    require(numAdminExecutors[msg.sender] <= maxExecutorsPerAdmin, "EXECUTOR_LIMIT_HIT");
+    require(numAdminExecutors[msg.sender] < maxExecutorsPerAdmin, "EXECUTOR_LIMIT_HIT");
     _addExecutor(executor);
     numAdminExecutors[msg.sender] += 1;
   }

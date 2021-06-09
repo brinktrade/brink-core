@@ -2,7 +2,7 @@ const { ethers } = require('hardhat')
 const { chaiSolidity } = require('@brinkninja/test-helpers')
 const { expect } = chaiSolidity()
 
-describe('ExecutorAccessController', function() {
+describe.only('ExecutorAccessController', function() {
   beforeEach(async function () {
     const [
       ownerAccount, adminAccount, executorAccount , adminAccount2, executorAccount2, randomAccount
@@ -56,9 +56,29 @@ describe('ExecutorAccessController', function() {
       expect(await this.executorAccessController.isExecutor(this.executorAccount.address)).to.equal(false)
     })
 
-    it('Prevents owner from adding an executor address that requires a singature, reverts with: \'NOT_ADMIN\'', async function() {
+    it('Prevents owner from adding an executor address that requires a signature, reverts with: \'NOT_ADMIN\'', async function() {
       await expect(this.executorAccessController.addExecutor(this.executorAccount.address))
         .to.be.revertedWith('NOT_ADMIN')
+    })
+
+    it('Allows owner to change max number of executors per admin', async function() {
+      await this.executorAccessController.connect(this.ownerAccount).modifyMaxExecutorsPerAdmin(20)
+      expect(await this.executorAccessController.maxExecutorsPerAdmin()).to.equal(20)
+    })
+
+    it('Allows owner to add more executors than the max per admin', async function() {
+      await this.executorAccessController.connect(this.ownerAccount).addExecutorWithoutSignature('0x0000000000000000000000000000000000000000')
+      await this.executorAccessController.connect(this.ownerAccount).addExecutorWithoutSignature('0x0000000000000000000000000000000000000001')
+      await this.executorAccessController.connect(this.ownerAccount).addExecutorWithoutSignature('0x0000000000000000000000000000000000000002')
+      await this.executorAccessController.connect(this.ownerAccount).addExecutorWithoutSignature('0x0000000000000000000000000000000000000003')
+      await this.executorAccessController.connect(this.ownerAccount).addExecutorWithoutSignature('0x0000000000000000000000000000000000000004')
+      await this.executorAccessController.connect(this.ownerAccount).addExecutorWithoutSignature('0x0000000000000000000000000000000000000005')
+      await this.executorAccessController.connect(this.ownerAccount).addExecutorWithoutSignature('0x0000000000000000000000000000000000000006')
+      await this.executorAccessController.connect(this.ownerAccount).addExecutorWithoutSignature('0x0000000000000000000000000000000000000007')
+      await this.executorAccessController.connect(this.ownerAccount).addExecutorWithoutSignature('0x0000000000000000000000000000000000000008')
+      await this.executorAccessController.connect(this.ownerAccount).addExecutorWithoutSignature('0x0000000000000000000000000000000000000009')
+      await this.executorAccessController.connect(this.ownerAccount).addExecutorWithoutSignature('0x000000000000000000000000000000000000000a')
+      expect(await this.executorAccessController.numAdminExecutors(this.ownerAccount.address)).to.equal(0)
     })
   })
 
@@ -78,8 +98,10 @@ describe('ExecutorAccessController', function() {
     it.skip('Allows admin to remove an owned executor address', async function() {
       await this.executorAccessController.connect(this.adminAccount).addExecutor(this.executorAccount.address)
       expect(await this.executorAccessController.isExecutor(this.executorAccount.address)).to.equal(true)
+      expect(await this.executorAccessController.numAdminExecutors(this.executorAccount.address)).to.equal(1)
       await this.executorAccessController.connect(this.adminAccount).removeExecutor(this.executorAccount.address)
       expect(await this.executorAccessController.isExecutor(this.executorAccount.address)).to.equal(false)
+      expect(await this.executorAccessController.numAdminExecutors(this.executorAccount.address)).to.equal(0)
     })
 
     it('Prevents admin from adding an admin, reverts with \'NOT_CONTRACT_OWNER\'', async function() {
@@ -94,6 +116,22 @@ describe('ExecutorAccessController', function() {
         .to.be.revertedWith('NOT_EXECUTOR_OWNER')
     })
 
+    // TODO: @Mike, test requires fixing when you add signature to addExecutor... this test will be annoying when you add sig verification, sorry
+    it('Prevents admin from adding more executors than the limit, reverts with \'EXECUTOR_LIMIT_HIT\'', async function() {
+      await this.executorAccessController.connect(this.adminAccount).addExecutor('0x0000000000000000000000000000000000000000')
+      await this.executorAccessController.connect(this.adminAccount).addExecutor('0x0000000000000000000000000000000000000001')
+      await this.executorAccessController.connect(this.adminAccount).addExecutor('0x0000000000000000000000000000000000000002')
+      await this.executorAccessController.connect(this.adminAccount).addExecutor('0x0000000000000000000000000000000000000003')
+      await this.executorAccessController.connect(this.adminAccount).addExecutor('0x0000000000000000000000000000000000000004')
+      await this.executorAccessController.connect(this.adminAccount).addExecutor('0x0000000000000000000000000000000000000005')
+      await this.executorAccessController.connect(this.adminAccount).addExecutor('0x0000000000000000000000000000000000000006')
+      await this.executorAccessController.connect(this.adminAccount).addExecutor('0x0000000000000000000000000000000000000007')
+      await this.executorAccessController.connect(this.adminAccount).addExecutor('0x0000000000000000000000000000000000000008')
+      await this.executorAccessController.connect(this.adminAccount).addExecutor('0x0000000000000000000000000000000000000009')
+      await expect(this.executorAccessController.connect(this.adminAccount).addExecutor('0x000000000000000000000000000000000000000a'))
+        .to.be.revertedWith('EXECUTOR_LIMIT_HIT')
+    })
+
     // TODO: @Mike, test *potentially* (revert message specifically) requires fixing when you add signature to addExecutor
     it.skip('Prevents admin from adding an owned executor address, reverts with \'EXECUTOR_EXISTS\'', async function() {
       await this.executorAccessController.connect(this.ownerAccount).addExecutorWithoutSignature(this.executorAccount.address)
@@ -102,8 +140,13 @@ describe('ExecutorAccessController', function() {
         .to.be.revertedWith('EXECUTOR_EXISTS')
     })
 
-    it('Prevents admin from adding an executor address without singature, reverts with \'NOT_CONTRACT_OWNER\'', async function() {
+    it('Prevents admin from adding an executor address without signature, reverts with \'NOT_CONTRACT_OWNER\'', async function() {
       await expect(this.executorAccessController.connect(this.adminAccount).addExecutorWithoutSignature(this.executorAccount.address))
+        .to.be.revertedWith('NOT_CONTRACT_OWNER')
+    })
+
+    it('Prevents admin from changing max number of executors per admin, reverts with \'NOT_CONTRACT_OWNER\'', async function() {
+      await expect(this.executorAccessController.connect(this.adminAccount).modifyMaxExecutorsPerAdmin(200))
         .to.be.revertedWith('NOT_CONTRACT_OWNER')
     })
   })
@@ -134,8 +177,13 @@ describe('ExecutorAccessController', function() {
         .to.be.revertedWith('NOT_EXECUTOR_OWNER')
     })
 
-    it('Prevents random account from adding an executor address without singature, reverts with \'NOT_CONTRACT_OWNER\'', async function() {
+    it('Prevents random account from adding an executor address without signature, reverts with \'NOT_CONTRACT_OWNER\'', async function() {
       await expect(this.executorAccessController.connect(this.randomAccount).addExecutorWithoutSignature(this.executorAccount2.address))
+        .to.be.revertedWith('NOT_CONTRACT_OWNER')
+    })
+
+    it('Prevents random account from changing max number of executors per admin, reverts with \'NOT_CONTRACT_OWNER\'', async function() {
+      await expect(this.executorAccessController.connect(this.randomAccount).modifyMaxExecutorsPerAdmin(200))
         .to.be.revertedWith('NOT_CONTRACT_OWNER')
     })
   })
