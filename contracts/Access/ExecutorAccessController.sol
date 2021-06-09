@@ -27,7 +27,7 @@ contract ExecutorAccessController is EIP712SignerRecovery {
   uint8 public maxExecutorsPerAdmin = 10;
 
   /// @dev admin address -> number of active validators
-  mapping(address => uint8) public numAdminExecutors;
+  mapping(address => uint8) public adminExecutorCount;
 
   /// @dev modifier, checks address is the Owner
   modifier onlyOwner {
@@ -77,9 +77,9 @@ contract ExecutorAccessController is EIP712SignerRecovery {
       "SIGNER_NOT_EXECUTOR"
     );
     require(executorAdmins[executor] == address(0), "EXECUTOR_EXISTS");
-    require(numAdminExecutors[msg.sender] < maxExecutorsPerAdmin, "EXECUTOR_LIMIT_HIT");
+    require(adminExecutorCount[msg.sender] < maxExecutorsPerAdmin, "EXECUTOR_MAX_EXCEEDED");
     _addExecutor(executor);
-    numAdminExecutors[msg.sender] += 1;
+    adminExecutorCount[msg.sender] += 1;
   }
 
   /// @dev Adds an executor without requiring a signature
@@ -101,7 +101,7 @@ contract ExecutorAccessController is EIP712SignerRecovery {
   function removeExecutor(address executor) external {
     require(executorAdmins[executor] == msg.sender || owner == msg.sender, "NOT_EXECUTOR_OWNER");
     if (executorAdmins[executor] != owner) {
-      numAdminExecutors[executorAdmins[executor]] -= 1;
+      adminExecutorCount[executorAdmins[executor]] -= 1;
     }
     executors[executor] = false;
     executorAdmins[executor] = address(0);

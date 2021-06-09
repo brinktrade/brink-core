@@ -22,6 +22,12 @@ describe('ExecutorAccessController', function() {
     this.executorAccountSignature = (await getAddExecutorSignature(this.executorAccount)).signature
     this.executorAccount2Signature = (await getAddExecutorSignature(this.executorAccount2)).signature
 
+    this.addSignerAsExecutor = async function (signerIndex) {
+      const signer = (await ethers.getSigners())[signerIndex]
+      await this.executorAccessController.connect(this.adminAccount)
+        .addExecutor(signer.address, (await getAddExecutorSignature(signer)).signature)
+    }
+
     async function getAddExecutorSignature (executor) {
       const { typedData, signature } = await signEIP712({
         signer: executor,
@@ -75,11 +81,6 @@ describe('ExecutorAccessController', function() {
       expect(await this.executorAccessController.isExecutor(this.executorAccount.address)).to.equal(false)
     })
 
-    it('Prevents owner from adding an executor address that requires a signature, reverts with: \'NOT_ADMIN\'', async function() {
-      await expect(this.executorAccessController.addExecutor(this.executorAccount.address))
-        .to.be.revertedWith('NOT_ADMIN')
-    })
-
     it('Allows owner to change max number of executors per admin', async function() {
       await this.executorAccessController.connect(this.ownerAccount).modifyMaxExecutorsPerAdmin(20)
       expect(await this.executorAccessController.maxExecutorsPerAdmin()).to.equal(20)
@@ -97,7 +98,7 @@ describe('ExecutorAccessController', function() {
       await this.executorAccessController.connect(this.ownerAccount).addExecutorWithoutSignature('0x0000000000000000000000000000000000000008')
       await this.executorAccessController.connect(this.ownerAccount).addExecutorWithoutSignature('0x0000000000000000000000000000000000000009')
       await this.executorAccessController.connect(this.ownerAccount).addExecutorWithoutSignature('0x000000000000000000000000000000000000000a')
-      expect(await this.executorAccessController.numAdminExecutors(this.ownerAccount.address)).to.equal(0)
+      expect(await this.executorAccessController.adminExecutorCount(this.ownerAccount.address)).to.equal(0)
     })
     
     // TODO: let owner use this function
@@ -123,10 +124,10 @@ describe('ExecutorAccessController', function() {
       await this.executorAccessController.connect(this.adminAccount)
         .addExecutor(this.executorAccount.address, this.executorAccountSignature)
       expect(await this.executorAccessController.isExecutor(this.executorAccount.address)).to.equal(true)
-      expect(await this.executorAccessController.numAdminExecutors(this.executorAccount.address)).to.equal(1)
+      expect(await this.executorAccessController.adminExecutorCount(this.adminAccount.address)).to.equal(1)
       await this.executorAccessController.connect(this.adminAccount).removeExecutor(this.executorAccount.address)
       expect(await this.executorAccessController.isExecutor(this.executorAccount.address)).to.equal(false)
-      expect(await this.executorAccessController.numAdminExecutors(this.executorAccount.address)).to.equal(0)
+      expect(await this.executorAccessController.adminExecutorCount(this.adminAccount.address)).to.equal(0)
     })
 
     it('Prevents admin from adding an admin, reverts with \'NOT_CONTRACT_OWNER\'', async function() {
@@ -143,20 +144,14 @@ describe('ExecutorAccessController', function() {
         .to.be.revertedWith('NOT_EXECUTOR_OWNER')
     })
 
-    // TODO: @Mike, test requires fixing when you add signature to addExecutor... this test will be annoying when you add sig verification, sorry
-    it('Prevents admin from adding more executors than the limit, reverts with \'EXECUTOR_LIMIT_HIT\'', async function() {
-      await this.executorAccessController.connect(this.adminAccount).addExecutor('0x0000000000000000000000000000000000000000')
-      await this.executorAccessController.connect(this.adminAccount).addExecutor('0x0000000000000000000000000000000000000001')
-      await this.executorAccessController.connect(this.adminAccount).addExecutor('0x0000000000000000000000000000000000000002')
-      await this.executorAccessController.connect(this.adminAccount).addExecutor('0x0000000000000000000000000000000000000003')
-      await this.executorAccessController.connect(this.adminAccount).addExecutor('0x0000000000000000000000000000000000000004')
-      await this.executorAccessController.connect(this.adminAccount).addExecutor('0x0000000000000000000000000000000000000005')
-      await this.executorAccessController.connect(this.adminAccount).addExecutor('0x0000000000000000000000000000000000000006')
-      await this.executorAccessController.connect(this.adminAccount).addExecutor('0x0000000000000000000000000000000000000007')
-      await this.executorAccessController.connect(this.adminAccount).addExecutor('0x0000000000000000000000000000000000000008')
-      await this.executorAccessController.connect(this.adminAccount).addExecutor('0x0000000000000000000000000000000000000009')
-      await expect(this.executorAccessController.connect(this.adminAccount).addExecutor('0x000000000000000000000000000000000000000a'))
-        .to.be.revertedWith('EXECUTOR_LIMIT_HIT')
+    it('Prevents admin from adding more executors than the maximum, reverts with \'EXECUTOR_MAX_EXCEEDED\'',
+      async function()
+    {
+      const maxExecutors = 10
+      for (let i = 0; i < maxExecutors; i++) {
+        await this.addSignerAsExecutor(i)
+      }
+      await expect(this.addSignerAsExecutor(11)).to.be.revertedWith('EXECUTOR_MAX_EXCEEDED')
     })
 
     it('Prevents admin from adding an owned executor address, reverts with \'EXECUTOR_EXISTS\'', async function() {
