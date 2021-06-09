@@ -14,11 +14,15 @@ const setupMetaAccount = async (owner) => {
   const proxyAccountOwner = owner || metaAccountOwner
   
   const callExecutor = await CallExecutor.deploy()
-  const impl_0 = await MockAccount.deploy(callExecutor.address, defaultAccount.address)
-  const proxy = await Proxy.deploy(impl_0.address, proxyAccountOwner.address, chainId)
+  const canonicalAccount = await MockAccount.deploy(callExecutor.address, defaultAccount.address)
+  const proxy = await Proxy.deploy(canonicalAccount.address, proxyAccountOwner.address, chainId)
   const metaAccount = await ethers.getContractAt('MockAccountWithTestCalls', proxy.address)
 
-  return { metaAccount, account: impl_0 }
+  // add the defaultAccount (which is the accessControlOwner) as an admin and executor
+  await canonicalAccount.addAdmin(defaultAccount.address)
+  await canonicalAccount.addExecutor(defaultAccount.address)
+
+  return { metaAccount, account: canonicalAccount }
 }
 
 module.exports = setupMetaAccount
