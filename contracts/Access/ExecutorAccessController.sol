@@ -1,9 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.7.0;
 
+import "../Account/EIP712SignerRecovery.sol";
+
 /// @author Brink
 /// @title Executor access controller for Brink transactions
-contract ExecutorAccessController {
+contract ExecutorAccessController is EIP712SignerRecovery {
+
+  /// @dev Typehash for signed addExecutor() messages
+  /// @dev keccak256("AddExecutor(address executor)")
+  bytes32 internal constant ADD_EXECUTOR_TYPEHASH = 0xe4e366336879e9d2c1ad5275c1912d69c53200255a6fdecc42f19a6b05701d56;
 
   /// @dev owner of the contract
   address public owner;
@@ -35,10 +41,12 @@ contract ExecutorAccessController {
     _;
   }
 
-  /// @dev Stores the address of the owner of the ExecutorAccessController
+  /// @dev Stores the address of the owner and stores the domain separator
   /// @param _owner The owner of the ExecutorAccessController
-  constructor(address _owner) {
+  /// @param chainId_ Included in domain separator to ensure that EIP-712 can't be replayed on other chains
+  constructor(address _owner, uint256 chainId_) {
     owner = _owner;
+    _storeDomainSeparator("ExecutorAccessController", "1", chainId_);
   }
 
   /// @dev Modifys the max number of executors per admin
@@ -62,7 +70,12 @@ contract ExecutorAccessController {
   /// @dev Adds an executor
   /// @notice Only admins can add executors
   /// @param executor The executor address
-  function addExecutor(address executor) external onlyAdmin {
+  /// @param signature Signed message from the executor address, to verify that it's an EOA
+  function addExecutor(address executor, bytes memory signature) external onlyAdmin {
+    require(
+      _recoverSigner(keccak256(abi.encode(ADD_EXECUTOR_TYPEHASH, executor)), signature) == executor,
+      "SIGNER_NOT_EXECUTOR"
+    );
     require(executorAdmins[executor] == address(0), "EXECUTOR_EXISTS");
     require(numAdminExecutors[msg.sender] <= maxExecutorsPerAdmin, "EXECUTOR_LIMIT_HIT");
     _addExecutor(executor);
