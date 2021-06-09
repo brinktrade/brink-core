@@ -52,9 +52,21 @@ contract ExecutorAccessController {
   /// @param executor The executor address
   function addExecutor(address executor) external onlyAdmin {
     require(executorAdmins[executor] == address(0), "EXECUTOR_EXISTS");
+    _addExecutor(executor);
+  }
+
+  /// @dev Adds an executor without requiring a signature
+  /// @notice Only the owner can add an executor without requiring a signature
+  /// @param executor The executor address
+  function addExecutorWithoutSignature(address executor) external onlyOwner {
+    _addExecutor(executor);
+  }
+
+  /// @dev Helper function that handles adding an executor
+  function _addExecutor(address executor) internal {
     executorAdmins[executor] = msg.sender;
     executors[executor] = true;
-  }
+  } 
 
   /// @dev Removes an executor
   /// @notice Only the admin that added the executor can remove it
@@ -78,4 +90,5 @@ contract ExecutorAccessController {
   function isAdmin(address admin) external view returns(bool) {
     return admins[admin];
   }
+
 }

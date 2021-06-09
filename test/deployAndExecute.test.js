@@ -12,7 +12,7 @@ const { expect } = chaiSolidity()
 
 const chainId = 1
 
-describe.skip('DeployAndExecute', function () {
+describe('DeployAndExecute', function () {
   beforeEach(async function () {
     const signers = await getSigners()
     this.ethStoreAccount = signers.defaultAccount
@@ -40,7 +40,7 @@ describe.skip('DeployAndExecute', function () {
     this.metaAccountImpl = await this.Account.deploy(callExecutor.address, this.proxyOwner.address)
     this.salt = ethers.utils.formatBytes32String('some.salt')
     this.metaAccountImpl.connect(this.proxyOwner).addAdmin(this.proxyOwner.address)
-    this.metaAccountImpl.connect(this.proxyOwner).addExecutor(this.proxyOwner.address)
+    this.metaAccountImpl.connect(this.proxyOwner).addExecutorWithoutSignature(this.proxyOwner.address)
 
     this.testAccountCalls = await this.testAccountCalls.deploy()
 
@@ -92,6 +92,7 @@ describe.skip('DeployAndExecute', function () {
       })
 
       // batched deploy account + metaDelegateCall
+      this.metaAccountImpl.connect(this.proxyOwner).addExecutorWithoutSignature(this.deployAndExecute.address)
       await this.deployAndExecute.connect(this.proxyOwner).deployAndExecute(this.accountCode, this.salt, execData)
 
       // get final recipient balance
