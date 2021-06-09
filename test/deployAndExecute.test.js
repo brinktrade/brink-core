@@ -25,7 +25,7 @@ describe('DeployAndExecute', function () {
     this.testAccountCalls = await ethers.getContractFactory('TestAccountCalls')
 
     const callExecutor = await this.CallExecutor.deploy()
-    this.metaAccountImpl = await this.Account.deploy(callExecutor.address, this.proxyOwner.address)
+    this.metaAccountImpl = await this.Account.deploy(callExecutor.address, this.proxyOwner.address, chainId)
     this.salt = ethers.utils.formatBytes32String('some.salt')
     this.metaAccountImpl.connect(this.proxyOwner).addAdmin(this.proxyOwner.address)
     this.metaAccountImpl.connect(this.proxyOwner).addExecutorWithoutSignature(this.proxyOwner.address)

@@ -2,16 +2,14 @@
 
 pragma solidity ^0.7.0;
 
-import "@openzeppelin/contracts/cryptography/ECDSA.sol";
 import "../Called/CallExecutable.sol";
 import "../Proxy/ProxyGettable.sol";
 import "../Access/ExecutorAccessController.sol";
+import "./EIP712SignerRecovery.sol";
 
 /// @title Brink account core
 /// @notice Deployed once and used by many Proxy contracts as the implementation contract
-/// @notice Uses EIP712 typed data signing standard https://github.com/ethereum/EIPs/pull/712
-contract Account is CallExecutable, ProxyGettable, ExecutorAccessController {
-
+contract Account is ProxyGettable, EIP712SignerRecovery, CallExecutable, ExecutorAccessController {
   /// @dev Typehash for signed metaCall() messages
   /// @dev keccak256("MetaCall(uint256 value,address to,bytes data)")
   bytes32 internal constant META_CALL_TYPEHASH =
@@ -27,10 +25,14 @@ contract Account is CallExecutable, ProxyGettable, ExecutorAccessController {
   bytes32 internal constant META_PARTIAL_SIGNED_DELEGATE_CALL_TYPEHASH = 
     0x0266ca6c1eb1acc96144ea62283cc37b45ab1d2f2e603f95733a75df34ee5e73;
 
-  /// @dev Constructor stores the address of the CallExecutor contract
-  /// @dev CallExecutor is used as a call proxy to ensure that msg.sender is never the account address
-  constructor(CallExecutor callExecutor, address accessControlOwner) 
-    ExecutorAccessController(accessControlOwner) 
+  /// @dev Constructor sets call executor and the owner of ExecutorAccessController
+  /// @notice This sets state on the canonical Account contract, not the proxies
+  /// @notice Proxy contracts read from canonical Account state through their implementation() address
+  /// @param callExecutor Used as a call proxy to ensure that msg.sender is never the account address
+  /// @param accessControlOwner The owner of ExecutorAccessController
+  /// @param chainId_ Included in domain separator to ensure that EIP-712 can't be replayed on other chains
+  constructor(CallExecutor callExecutor, address accessControlOwner, uint256 chainId_) 
+    ExecutorAccessController(accessControlOwner, chainId_) 
   {
     _setCallExecutor(callExecutor);
   }
@@ -132,20 +134,5 @@ contract Account is CallExecutable, ProxyGettable, ExecutorAccessController {
         revert(0, returndatasize())
       }
     }
-  }
-
-  /// @dev Recovers the signer address for a signed message
-  /// @param dataHash Hash of the data included in the message
-  /// @param signature Signature
-  function _recoverSigner(bytes32 dataHash, bytes memory signature) internal view returns (address signer) {
-    // generate the hash for the signed message
-    bytes32 messageHash = keccak256(abi.encodePacked(
-      "\x19\x01",
-      _domainSeparator(),
-      dataHash
-    ));
-
-    // recover the signer address from the signed messageHash and return
-    signer = ECDSA.recover(messageHash, signature);
   }
 }
