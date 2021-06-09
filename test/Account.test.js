@@ -26,8 +26,8 @@ describe('Account', function () {
     const { metaAccount, account } = await setupMetaAccount()
     this.metaAccount = metaAccount
     this.account = account
-    await this.account.connect(this.defaultAccount).addAdmin(this.metaAccountOwner.address)
-    await this.account.connect(this.defaultAccount).addExecutorWithoutSignature(this.metaAccountOwner.address)
+    await this.account.addAdmin(this.metaAccountOwner.address)
+    await this.account.addExecutorWithoutSignature(this.metaAccountOwner.address)
   })
 
   describe('sending ETH to account address', function () {
@@ -66,7 +66,7 @@ describe('Account', function () {
 
     it('call from non-owner should revert with \'NOT_OWNER\'', async function() {
       await expect(
-        this.metaAccount.connect(this.defaultAccount).externalCall(0, ZERO_ADDRESS, this.tknTransferCall)
+        this.metaAccount.externalCall(0, ZERO_ADDRESS, this.tknTransferCall)
       ).to.be.revertedWith('NOT_OWNER');
     })
 
@@ -174,7 +174,7 @@ describe('Account', function () {
     })
 
     it('when executor is not valid, revert with \'EXECUTOR_NOT_ALLOWED\'', async function () {
-      await this.account.connect(this.defaultAccount).removeExecutor(this.defaultAccount.address)
+      await this.account.removeExecutor(this.defaultAccount.address)
       await this.defaultAccount.sendTransaction({
         to: this.metaAccount.address,
         value: this.transferAmount
@@ -230,7 +230,7 @@ describe('Account', function () {
     })
 
     it('when executor is not valid, revert with \'EXECUTOR_NOT_ALLOWED\'', async function () {
-      await this.account.connect(this.defaultAccount).removeExecutor(this.defaultAccount.address)
+      await this.account.removeExecutor(this.defaultAccount.address)
       await expect(execMetaTx({
         contract: this.metaAccount,
         method: 'metaDelegateCall',
@@ -289,7 +289,7 @@ describe('Account', function () {
     })
 
     it('when executor is not valid, revert with \'EXECUTOR_NOT_ALLOWED\'', async function () {
-      await this.account.connect(this.defaultAccount).removeExecutor(this.defaultAccount.address)
+      await this.account.removeExecutor(this.defaultAccount.address)
       const { signedData, unsignedData } = splitCallData(encodeFunctionCall(
         'testEvent',
         ['uint256', 'int24', 'address'],
