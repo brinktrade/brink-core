@@ -17,6 +17,12 @@ contract ExecutorAccessController {
   /// @dev executor address -> admin address
   mapping(address => address) public executorAdmins;
 
+  /// @dev max executors per admin
+  uint8 public maxExecutorsPerAdmin = 10;
+
+  /// @dev admin address -> number of active validators
+  mapping(address => uint8) public numAdminExecutors;
+
   /// @dev modifier, checks address is the Owner
   modifier onlyOwner {
     require(msg.sender == owner, "NOT_CONTRACT_OWNER");
@@ -33,6 +39,12 @@ contract ExecutorAccessController {
   /// @param _owner The owner of the ExecutorAccessController
   constructor(address _owner) {
     owner = _owner;
+  }
+
+  /// @dev Modifys the max number of executors per admin
+  /// @param _maxExecutorsPerAdmin The new max number of executors per admin
+  function modifyMaxExecutorsPerAdmin(uint8 _maxExecutorsPerAdmin) external onlyOwner {
+    maxExecutorsPerAdmin = _maxExecutorsPerAdmin
   }
 
   /// @dev Adds an admin
@@ -52,7 +64,9 @@ contract ExecutorAccessController {
   /// @param executor The executor address
   function addExecutor(address executor) external onlyAdmin {
     require(executorAdmins[executor] == address(0), "EXECUTOR_EXISTS");
+    require(numAdminExecutors[msg.sender] <= maxExecutorsPerAdmin);
     _addExecutor(executor);
+    numAdminExecutors[msg.sender] += 1;
   }
 
   /// @dev Adds an executor without requiring a signature
@@ -73,8 +87,11 @@ contract ExecutorAccessController {
   /// @param executor The executor address
   function removeExecutor(address executor) external {
     require(executorAdmins[executor] == msg.sender || owner == msg.sender, "NOT_EXECUTOR_OWNER");
-    executorAdmins[executor] = address(0);
+    if (executorAdmins[executor] != owner) {
+      numAdminExecutors[executorAdmins[executor]] -= 1;
+    }
     executors[executor] = false;
+    executorAdmins[executor] = address(0);
   }
 
   /// @dev Returns true if the address is an executor
