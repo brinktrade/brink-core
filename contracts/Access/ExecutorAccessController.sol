@@ -44,7 +44,7 @@ contract ExecutorAccessController {
   /// @dev Modifys the max number of executors per admin
   /// @param _maxExecutorsPerAdmin The new max number of executors per admin
   function modifyMaxExecutorsPerAdmin(uint8 _maxExecutorsPerAdmin) external onlyOwner {
-    maxExecutorsPerAdmin = _maxExecutorsPerAdmin
+    maxExecutorsPerAdmin = _maxExecutorsPerAdmin;
   }
 
   /// @dev Adds an admin
@@ -64,7 +64,7 @@ contract ExecutorAccessController {
   /// @param executor The executor address
   function addExecutor(address executor) external onlyAdmin {
     require(executorAdmins[executor] == address(0), "EXECUTOR_EXISTS");
-    require(numAdminExecutors[msg.sender] <= maxExecutorsPerAdmin);
+    require(numAdminExecutors[msg.sender] <= maxExecutorsPerAdmin, "EXECUTOR_LIMIT_HIT");
     _addExecutor(executor);
     numAdminExecutors[msg.sender] += 1;
   }
