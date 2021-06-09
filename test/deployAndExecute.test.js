@@ -24,7 +24,13 @@ describe('DeployAndExecute', function () {
     this.CallExecutor = await ethers.getContractFactory('CallExecutor')
     this.testAccountCalls = await ethers.getContractFactory('TestAccountCalls')
 
-    const { singletonFactory, deployAndExecute } = await setupDeployers()
+    const callExecutor = await this.CallExecutor.deploy()
+    this.metaAccountImpl = await this.Account.deploy(callExecutor.address, this.proxyOwner.address)
+    this.salt = ethers.utils.formatBytes32String('some.salt')
+    this.metaAccountImpl.connect(this.proxyOwner).addAdmin(this.proxyOwner.address)
+    this.metaAccountImpl.connect(this.proxyOwner).addExecutorWithoutSignature(this.proxyOwner.address)
+
+    const { singletonFactory, deployAndExecute } = await setupDeployers(this.metaAccountImpl.address)
     this.singletonFactory = singletonFactory
     this.deployAndExecute = deployAndExecute
 
@@ -35,12 +41,6 @@ describe('DeployAndExecute', function () {
     this.latestBlock = BN(await ethers.provider.getBlockNumber())
     this.expiryBlock = this.latestBlock.add(BN(1000)) // 1,000 blocks from now
     this.expiredBlock = this.latestBlock.sub(BN(1)) // 1 block ago
-
-    const callExecutor = await this.CallExecutor.deploy()
-    this.metaAccountImpl = await this.Account.deploy(callExecutor.address, this.proxyOwner.address)
-    this.salt = ethers.utils.formatBytes32String('some.salt')
-    this.metaAccountImpl.connect(this.proxyOwner).addAdmin(this.proxyOwner.address)
-    this.metaAccountImpl.connect(this.proxyOwner).addExecutorWithoutSignature(this.proxyOwner.address)
 
     this.testAccountCalls = await this.testAccountCalls.deploy()
 

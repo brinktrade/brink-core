@@ -1,6 +1,6 @@
 const singletonFactoryContract = require('./singletonFactory/singletonFactoryContract')
 
-const setupDeployers = async () => {
+const setupDeployers = async (accountAddress) => {
   const SingletonFactory = await singletonFactoryContract()
   const singletonFactory = await SingletonFactory.deploy()
   await singletonFactory.deployed()
@@ -9,7 +9,7 @@ const setupDeployers = async () => {
   const singletonFactoryCaller = await SingletonFactoryCaller.deploy(singletonFactory.address) 
 
   const DeployAndExecute = await ethers.getContractFactory('DeployAndExecute')
-  const deployAndExecute = await DeployAndExecute.deploy(singletonFactory.address)
+  const deployAndExecute = await DeployAndExecute.deploy(singletonFactory.address, accountAddress)
 
   return { singletonFactory, singletonFactoryCaller, deployAndExecute }
 }

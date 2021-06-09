@@ -3,6 +3,7 @@
 pragma solidity ^0.7.0;
 
 import "../Interfaces/ISingletonFactory.sol";
+import "../Access/ExecutorAccessController.sol";
 
 /**
  * @dev Contract for batching CREATE2 contract deployment and an initial call into 1 tx
@@ -10,11 +11,15 @@ import "../Interfaces/ISingletonFactory.sol";
 contract DeployAndExecute {
   ISingletonFactory singletonFactory;
 
+  ExecutorAccessController executorAccessController;
+
+
   /**
   * @dev The constructor sets a SingletonFactory
   */
-  constructor(ISingletonFactory _singletonFactory) {
+  constructor(ISingletonFactory _singletonFactory, ExecutorAccessController _executorAccessController) {
     singletonFactory = _singletonFactory;
+    executorAccessController = _executorAccessController;
   }
 
  /**
@@ -22,6 +27,10 @@ contract DeployAndExecute {
   * and executes a call on the newly created contract
   */
   function deployAndExecute(bytes memory initCode, bytes32 salt, bytes memory execData) external {
+    
+    // Revert if msg.sender is not an executor
+    require(executorAccessController.isExecutor(msg.sender), "EXECUTOR_NOT_ALLOWED");
+
     // Deploy contract with SingletonFactory
     address createdContract = singletonFactory.deploy(initCode, salt);
 

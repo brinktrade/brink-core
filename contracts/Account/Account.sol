@@ -71,7 +71,7 @@ contract Account is CallExecutable, ProxyGettable, ExecutorAccessController {
   /// @param data Call data to execute
   /// @param signature Signature of the proxy owner
   function metaCall(uint256 value, address to, bytes memory data, bytes memory signature) external {
-    require(_proxyOwner() == msg.sender || ExecutorAccessController(_implementation()).isExecutor(msg.sender), "Account: Executor must be whitelisted");
+    require(_proxyOwner() == msg.sender || ExecutorAccessController(_implementation()).isExecutor(msg.sender), "EXECUTOR_NOT_ALLOWED");
     address signer = _recoverSigner(
       keccak256(abi.encode(META_CALL_TYPEHASH, value, to, keccak256(data))),
       signature
@@ -91,7 +91,7 @@ contract Account is CallExecutable, ProxyGettable, ExecutorAccessController {
   /// @param data Call data to execute
   /// @param signature Signature of the proxy owner
   function metaDelegateCall(address to, bytes memory data, bytes memory signature) external {
-    require(_proxyOwner() == msg.sender || ExecutorAccessController(_implementation()).isExecutor(msg.sender), "Account: Executor must be whitelisted");
+    require(_proxyOwner() == msg.sender || ExecutorAccessController(_implementation()).isExecutor(msg.sender), "EXECUTOR_NOT_ALLOWED");
     address signer = _recoverSigner(
       keccak256(abi.encode(META_DELEGATE_CALL_TYPEHASH, to, keccak256(data))),
       signature
@@ -116,7 +116,7 @@ contract Account is CallExecutable, ProxyGettable, ExecutorAccessController {
   function metaPartialSignedDelegateCall(
     address to, bytes memory data, bytes memory signature, bytes memory unsignedData
   ) external {
-    require(_proxyOwner() == msg.sender || ExecutorAccessController(_implementation()).isExecutor(msg.sender), "Account: Executor must be whitelisted");
+    require(_proxyOwner() == msg.sender || ExecutorAccessController(_implementation()).isExecutor(msg.sender), "EXECUTOR_NOT_ALLOWED");
     address signer = _recoverSigner(
       keccak256(abi.encode(META_PARTIAL_SIGNED_DELEGATE_CALL_TYPEHASH, to, keccak256(data))),
       signature
