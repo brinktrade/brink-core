@@ -35,9 +35,9 @@ contract ExecutorAccessController is EIP712SignerRecovery {
     _;
   }
 
-  /// @dev modifier, checks address is an Admin
-  modifier onlyAdmin {
-    require(admins[msg.sender], "NOT_ADMIN");
+  /// @dev modifier, checks address is an Admin or the Owner
+  modifier onlyAdminOrOwner {
+    require(admins[msg.sender] || owner == msg.sender, "NOT_ADMIN_OR_OWNER");
     _;
   }
 
@@ -71,7 +71,7 @@ contract ExecutorAccessController is EIP712SignerRecovery {
   /// @notice Only admins can add executors
   /// @param executor The executor address
   /// @param signature Signed message from the executor address, to verify that it's an EOA
-  function addExecutor(address executor, bytes memory signature) external onlyAdmin {
+  function addExecutor(address executor, bytes memory signature) external onlyAdminOrOwner {
     require(
       _recoverSigner(keccak256(abi.encode(ADD_EXECUTOR_TYPEHASH, executor)), signature) == executor,
       "SIGNER_NOT_EXECUTOR"
@@ -99,7 +99,7 @@ contract ExecutorAccessController is EIP712SignerRecovery {
   /// @notice Only the admin that added the executor can remove it
   /// @param executor The executor address
   function removeExecutor(address executor) external {
-    require(executorAdmins[executor] == msg.sender || owner == msg.sender, "NOT_EXECUTOR_OWNER");
+    require(executorAdmins[executor] == msg.sender || owner == msg.sender, "NOT_EXECUTOR_ADMIN");
     if (executorAdmins[executor] != owner) {
       adminExecutorCount[executorAdmins[executor]] -= 1;
     }
