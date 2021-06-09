@@ -2,7 +2,7 @@ const { ethers } = require('hardhat')
 const { chaiSolidity } = require('@brinkninja/test-helpers')
 const { expect } = chaiSolidity()
 
-describe.only('ExecutorAccessController', function() {
+describe('ExecutorAccessController', function() {
   beforeEach(async function () {
     const [
       ownerAccount, adminAccount, executorAccount , adminAccount2, executorAccount2, randomAccount
