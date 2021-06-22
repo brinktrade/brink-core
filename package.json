@@ -13,7 +13,7 @@
   "author": "@mikec & @kyrrui",
   "license": "GPL-3.0-or-later",
   "devDependencies": {
-    "@brinkninja/test-helpers": "^0.1.0",
+    "@brinkninja/test-helpers": "^0.2.0",
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "ethers": "^5.1.0",
     "hardhat": "^2.1.2",
