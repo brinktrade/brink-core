@@ -63,26 +63,6 @@ contract Account is ProxyGettable, EIP712SignerRecovery, CallExecutable {
     }
   }
 
-  /// @dev Makes a call to an external contract with message data signed by the proxy owner
-  /// @param value Amount of wei to send with the call
-  /// @param to Address of the external contract to call
-  /// @param data Call data to execute
-  /// @param signature Signature of the proxy owner
-  function metaCall(uint256 value, address to, bytes memory data, bytes memory signature) external {
-    address signer = _recoverSigner(
-      keccak256(abi.encode(META_CALL_TYPEHASH, value, to, keccak256(data))),
-      signature
-    );
-    require(_proxyOwner() == signer, "NOT_OWNER");
-    assembly {
-      let result := call(gas(), to, value, add(data, 0x20), mload(data), 0, 0)
-      if eq(result, 0) {
-        returndatacopy(0, 0, returndatasize())
-        revert(0, returndatasize())
-      }
-    }
-  }
-
   /// @dev Makes a delegatecall to an external contract with message data signed by the proxy owner
   /// @param to Address of the external contract to delegatecall
   /// @param data Call data to execute
