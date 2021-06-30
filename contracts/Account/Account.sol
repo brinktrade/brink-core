@@ -9,11 +9,6 @@ import "./EIP712SignerRecovery.sol";
 /// @title Brink account core
 /// @notice Deployed once and used by many Proxy contracts as the implementation contract
 contract Account is ProxyGettable, EIP712SignerRecovery, CallExecutable {
-  /// @dev Typehash for signed metaCall() messages
-  /// @dev keccak256("MetaCall(uint256 value,address to,bytes data)")
-  bytes32 internal constant META_CALL_TYPEHASH =
-    0x2bba4f9d81b9b6e314b3217264746dfc8a8cf3be0736581e3d50b529a9f3d10a;
-
   /// @dev Typehash for signed metaDelegateCall() messages
   /// @dev keccak256("MetaDelegateCall(address to,bytes data)")
   bytes32 internal constant META_DELEGATE_CALL_TYPEHASH =

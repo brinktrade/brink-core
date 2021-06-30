@@ -5,7 +5,7 @@
 Contract for batching CREATE2 contract deployment and an initial call into 1 tx
 
 
-### `constructor(contract ISingletonFactory _singletonFactory, contract ExecutorAccessController _executorAccessController)` (public)
+### `constructor(contract ISingletonFactory _singletonFactory)` (public)
 
 
 

@@ -5,7 +5,7 @@ Deployed once and used by many Proxy contracts as the implementation contract
 
 
 
-### `constructor(contract CallExecutor callExecutor, address accessControlOwner, uint256 chainId_)` (public)
+### `constructor(contract CallExecutor callExecutor)` (public)
 
 This sets state on the canonical Account contract, not the proxies
 Proxy contracts read from canonical Account state through their implementation() address
@@ -27,13 +27,6 @@ Only executable directly by the proxy owner
 
 
 Makes a delegatecall to an external contract
-
-
-### `metaCall(uint256 value, address to, bytes data, bytes signature)` (external)
-
-
-
-Makes a call to an external contract with message data signed by the proxy owner
 
 
 ### `metaDelegateCall(address to, bytes data, bytes signature)` (external)
