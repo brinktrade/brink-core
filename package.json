@@ -7,7 +7,8 @@
   },
   "scripts": {
     "compile": "hardhat compile",
-    "test": "hardhat test"
+    "test": "hardhat test",
+    "docgen": "solidity-docgen --solc-module solc-0.7.6"
   },
   "description": "Core contracts for Brink accounts",
   "author": "@mikec & @kyrrui",
@@ -15,9 +16,11 @@
   "devDependencies": {
     "@brinkninja/test-helpers": "^0.2.0",
     "@nomiclabs/hardhat-ethers": "^2.0.2",
+    "@resolver-engine/core": "^0.3.3",
     "ethers": "^5.1.0",
     "hardhat": "^2.1.2",
     "moment": "^2.29.1",
-    "@resolver-engine/core": "^0.3.3"
+    "solc-0.7.6": "npm:solc@0.7.6",
+    "solidity-docgen": "^0.5.13"
   }
 }

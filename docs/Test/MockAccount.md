@@ -5,7 +5,7 @@
 
 
 
-### `constructor(contract CallExecutor callExecutor, address accessControlOwner)` (public)
+### `constructor(contract CallExecutor callExecutor)` (public)
 
 
 
