@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity >=0.7.6;
+
+pragma solidity ^0.7.0;
 
 import "../Called/CallExecutable.sol";
 import "../Proxy/ProxyGettable.sol";
-import "../Access/ExecutorAccessController.sol";
 import "./EIP712SignerRecovery.sol";
 
 /// @title Brink account core
 /// @notice Deployed once and used by many Proxy contracts as the implementation contract
-contract Account is ProxyGettable, EIP712SignerRecovery, CallExecutable, ExecutorAccessController {
+contract Account is ProxyGettable, EIP712SignerRecovery, CallExecutable {
   /// @dev Typehash for signed metaCall() messages
   /// @dev keccak256("MetaCall(uint256 value,address to,bytes data)")
   bytes32 internal constant META_CALL_TYPEHASH =
@@ -28,10 +28,7 @@ contract Account is ProxyGettable, EIP712SignerRecovery, CallExecutable, Executo
   /// @notice This sets state on the canonical Account contract, not the proxies
   /// @notice Proxy contracts read from canonical Account state through their implementation() address
   /// @param callExecutor Used as a call proxy to ensure that msg.sender is never the account address
-  /// @param accessControlOwner The owner of ExecutorAccessController
-  /// @param chainId_ Included in domain separator to ensure that EIP-712 can't be replayed on other chains
-  constructor(CallExecutor callExecutor, address accessControlOwner, uint256 chainId_) 
-    ExecutorAccessController(accessControlOwner, chainId_) 
+  constructor(CallExecutor callExecutor) 
   {
     _setCallExecutor(callExecutor);
   }
@@ -66,33 +63,11 @@ contract Account is ProxyGettable, EIP712SignerRecovery, CallExecutable, Executo
     }
   }
 
-  /// @dev Makes a call to an external contract with message data signed by the proxy owner
-  /// @param value Amount of wei to send with the call
-  /// @param to Address of the external contract to call
-  /// @param data Call data to execute
-  /// @param signature Signature of the proxy owner
-  function metaCall(uint256 value, address to, bytes memory data, bytes memory signature) external {
-    require(_proxyOwner() == msg.sender || ExecutorAccessController(_implementation()).isExecutor(msg.sender), "EXECUTOR_NOT_ALLOWED");
-    address signer = _recoverSigner(
-      keccak256(abi.encode(META_CALL_TYPEHASH, value, to, keccak256(data))),
-      signature
-    );
-    require(_proxyOwner() == signer, "NOT_OWNER");
-    assembly {
-      let result := call(gas(), to, value, add(data, 0x20), mload(data), 0, 0)
-      if eq(result, 0) {
-        returndatacopy(0, 0, returndatasize())
-        revert(0, returndatasize())
-      }
-    }
-  }
-
   /// @dev Makes a delegatecall to an external contract with message data signed by the proxy owner
   /// @param to Address of the external contract to delegatecall
   /// @param data Call data to execute
   /// @param signature Signature of the proxy owner
   function metaDelegateCall(address to, bytes memory data, bytes memory signature) external {
-    require(_proxyOwner() == msg.sender || ExecutorAccessController(_implementation()).isExecutor(msg.sender), "EXECUTOR_NOT_ALLOWED");
     address signer = _recoverSigner(
       keccak256(abi.encode(META_DELEGATE_CALL_TYPEHASH, to, keccak256(data))),
       signature
@@ -117,7 +92,6 @@ contract Account is ProxyGettable, EIP712SignerRecovery, CallExecutable, Executo
   function metaPartialSignedDelegateCall(
     address to, bytes memory data, bytes memory signature, bytes memory unsignedData
   ) external {
-    require(_proxyOwner() == msg.sender || ExecutorAccessController(_implementation()).isExecutor(msg.sender), "EXECUTOR_NOT_ALLOWED");
     address signer = _recoverSigner(
       keccak256(abi.encode(META_PARTIAL_SIGNED_DELEGATE_CALL_TYPEHASH, to, keccak256(data))),
       signature

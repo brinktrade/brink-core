@@ -21,9 +21,9 @@ describe('Proxy', function () {
     const CallExecutor = await ethers.getContractFactory('CallExecutor')
     const callExecutor = await CallExecutor.deploy()
 
-    this.metaAccountImpl = await this.Account.deploy(callExecutor.address, this.defaultAccount.address, chainId)
+    this.metaAccountImpl = await this.Account.deploy(callExecutor.address)
 
-    const { singletonFactory, singletonFactoryCaller } = await setupDeployers(this.metaAccountImpl.address)
+    const { singletonFactory, singletonFactoryCaller } = await setupDeployers()
     this.singletonFactory = singletonFactory
     this.singletonFactoryCaller = singletonFactoryCaller
     
