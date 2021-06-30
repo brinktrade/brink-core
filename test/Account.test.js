@@ -26,8 +26,6 @@ describe('Account', function () {
     const { metaAccount, account } = await setupMetaAccount()
     this.metaAccount = metaAccount
     this.account = account
-    await this.account.addAdmin(this.metaAccountOwner.address)
-    await this.account.addExecutorWithoutSignature(this.metaAccountOwner.address)
   })
 
   describe('sending ETH to account address', function () {
@@ -173,20 +171,6 @@ describe('Account', function () {
       })).to.be.revertedWith('NOT_OWNER')
     })
 
-    it('when executor is not valid, revert with \'EXECUTOR_NOT_ALLOWED\'', async function () {
-      await this.account.removeExecutor(this.defaultAccount.address)
-      await this.defaultAccount.sendTransaction({
-        to: this.metaAccount.address,
-        value: this.transferAmount
-      })
-      await expect(execMetaTx({
-        contract: this.metaAccount,
-        method: 'metaCall',
-        signer: this.metaAccountOwner,
-        params: [ this.transferAmount, this.transferRecipient.address, '0x' ]
-      })).to.be.revertedWith('EXECUTOR_NOT_ALLOWED')
-    })
-
     it('when value param is greater than zero, should transfer ETH with the call', async function () {
       await this.defaultAccount.sendTransaction({
         to: this.metaAccount.address,
@@ -227,19 +211,6 @@ describe('Account', function () {
         ]
       })
       await expect(promise).to.emit(this.metaAccount, 'MockParamEvent').withArgs(this.mockUint)
-    })
-
-    it('when executor is not valid, revert with \'EXECUTOR_NOT_ALLOWED\'', async function () {
-      await this.account.removeExecutor(this.defaultAccount.address)
-      await expect(execMetaTx({
-        contract: this.metaAccount,
-        method: 'metaDelegateCall',
-        signer: this.metaAccountOwner,
-        params: [
-          this.testAccountCalls.address,
-          encodeFunctionCall('testEvent', ['uint'], [this.mockUint.toString()])
-        ]
-      })).to.be.revertedWith('EXECUTOR_NOT_ALLOWED')
     })
 
     it('when signer is not proxy owner, should revert with NOT_OWNER', async function () {
@@ -286,22 +257,6 @@ describe('Account', function () {
       })
       await expect(promise).to.emit(this.metaAccount, 'MockParamsEvent')
         .withArgs(this.mockUint, this.mockInt, this.mockAddress)
-    })
-
-    it('when executor is not valid, revert with \'EXECUTOR_NOT_ALLOWED\'', async function () {
-      await this.account.removeExecutor(this.defaultAccount.address)
-      const { signedData, unsignedData } = splitCallData(encodeFunctionCall(
-        'testEvent',
-        ['uint256', 'int24', 'address'],
-        [ this.mockUint.toString(), this.mockInt, this.mockAddress ]
-      ), 1)
-      await expect(execMetaTx({
-        contract: this.metaAccount,
-        method: 'metaPartialSignedDelegateCall',
-        signer: this.metaAccountOwner,
-        params: [ this.testAccountCalls.address, signedData ],
-        unsignedData
-      })).to.be.revertedWith('EXECUTOR_NOT_ALLOWED')
     })
 
     it('when signer is not proxy owner, should revert with NOT_OWNER', async function () {

@@ -25,15 +25,12 @@ describe('DeployAndExecute', function () {
     this.testAccountCalls = await ethers.getContractFactory('TestAccountCalls')
 
     const callExecutor = await this.CallExecutor.deploy()
-    this.metaAccountImpl = await this.Account.deploy(callExecutor.address, this.proxyOwner.address, chainId)
+    this.metaAccountImpl = await this.Account.deploy(callExecutor.address)
     this.salt = ethers.utils.formatBytes32String('some.salt')
-    this.metaAccountImpl.connect(this.proxyOwner).addAdmin(this.proxyOwner.address)
-    this.metaAccountImpl.connect(this.proxyOwner).addExecutorWithoutSignature(this.proxyOwner.address)
-
-    const { singletonFactory, deployAndExecute } = await setupDeployers(this.metaAccountImpl.address)
+    
+    const { singletonFactory, deployAndExecute } = await setupDeployers()
     this.singletonFactory = singletonFactory
     this.deployAndExecute = deployAndExecute
-
     const { tokenA, tokenB } = await deployTestTokens()
     this.tokenA = tokenA
     this.tokenB = tokenB
@@ -43,6 +40,7 @@ describe('DeployAndExecute', function () {
     this.expiredBlock = this.latestBlock.sub(BN(1)) // 1 block ago
 
     this.testAccountCalls = await this.testAccountCalls.deploy()
+    
 
     const { address, initCode } = deployData(
       this.singletonFactory.address,
@@ -92,7 +90,6 @@ describe('DeployAndExecute', function () {
       })
 
       // batched deploy account + metaDelegateCall
-      this.metaAccountImpl.connect(this.proxyOwner).addExecutorWithoutSignature(this.deployAndExecute.address)
       await this.deployAndExecute.connect(this.proxyOwner).deployAndExecute(this.accountCode, this.salt, execData)
 
       // get final recipient balance

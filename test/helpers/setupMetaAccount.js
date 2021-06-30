@@ -14,13 +14,9 @@ const setupMetaAccount = async (owner) => {
   const proxyAccountOwner = owner || metaAccountOwner
   
   const callExecutor = await CallExecutor.deploy()
-  const canonicalAccount = await MockAccount.deploy(callExecutor.address, defaultAccount.address)
+  const canonicalAccount = await MockAccount.deploy(callExecutor.address)
   const proxy = await Proxy.deploy(canonicalAccount.address, proxyAccountOwner.address, chainId)
   const metaAccount = await ethers.getContractAt('MockAccountWithTestCalls', proxy.address)
-
-  // add the defaultAccount as an executor
-  // defaultAccount is the owner of the canonical Account's ExecutorAccessController
-  await canonicalAccount.addExecutorWithoutSignature(defaultAccount.address)
 
   return { metaAccount, account: canonicalAccount }
 }
