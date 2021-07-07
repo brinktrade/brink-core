@@ -1,15 +1,16 @@
 const { ethers } = require('hardhat')
+const brinkUtils = require('@brinkninja/utils')
+const { encodeFunctionCall } = brinkUtils
 const {
   BN, BN18,
   chaiSolidity,
   deployTestTokens,
-  encodeFunctionCall,
   splitCallData,
   randomAddress,
   execMetaTx,
   metaTxPromise,
   ZERO_ADDRESS
-} = require('@brinkninja/test-helpers')
+} = brinkUtils.test
 const { setupMetaAccount, getSigners } = require('./helpers')
 const { expect } = chaiSolidity()
 

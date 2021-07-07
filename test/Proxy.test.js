@@ -1,10 +1,11 @@
 const { ethers } = require('hardhat')
+const brinkUtils = require('@brinkninja/utils')
+const { deployData } = brinkUtils
 const {
   BN, BN18,
-  deployData,
   chaiSolidity,
   deployTestTokens
-} = require('@brinkninja/test-helpers')
+} = brinkUtils.test
 const { setupDeployers } = require('./helpers')
 const { expect } = chaiSolidity()
 
