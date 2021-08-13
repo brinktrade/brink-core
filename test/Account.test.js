@@ -1,4 +1,5 @@
 const { ethers } = require('hardhat')
+const { soliditySha3 } = require('web3-utils')
 const brinkUtils = require('@brinkninja/utils')
 const { encodeFunctionCall } = brinkUtils
 const {
@@ -126,6 +127,22 @@ describe('Account', function () {
         this.testAccountCalls.address,
         encodeFunctionCall('testRevert', ['bool'], [true])
       )).to.be.revertedWith('TestAccountCalls: reverted')
+    })
+  })
+
+  describe('storageLoad()', function () {
+    it('should return the storage value at the given pointer', async function () {
+      const inputVal = 123456
+
+      // store the input value
+      await this.metaAccount.connect(this.metaAccountOwner).delegateCall(
+        this.testAccountCalls.address,
+        encodeFunctionCall('testStore', ['uint'], [inputVal])
+      )
+
+      // read the value with storageLoad view function
+      const outputVal = await this.metaAccount.storageLoad(soliditySha3('mockUint'))
+      expect(BN(outputVal)).to.equal(BN(inputVal))
     })
   })
 

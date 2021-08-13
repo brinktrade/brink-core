@@ -14,6 +14,13 @@ Proxy contracts read from canonical Account state through their implementation()
 Constructor sets call executor and the owner of ExecutorAccessController
 
 
+### `storageLoad(bytes32 ptr) → bytes32 data` (external)
+
+
+
+Loads bytes32 data stored at the given pointer
+
+
 ### `externalCall(uint256 value, address to, bytes data)` (external)
 
 

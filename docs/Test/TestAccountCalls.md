@@ -35,12 +35,6 @@
 
 
 
-### `testLoad() → uint256 mockUint` (external)
-
-
-
-
-
 
 ### `ExecutedTestCall()`
 
