@@ -34,11 +34,4 @@ contract TestAccountCalls {
       sstore(ptr, mockUint)
     }
   }
-
-  function testLoad () external view returns (uint256 mockUint) {
-    bytes32 ptr = keccak256('mockUint');
-    assembly {
-      mockUint := sload(ptr)
-    }
-  }
 }
