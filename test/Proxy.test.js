@@ -6,7 +6,7 @@ const {
   chaiSolidity,
   deployTestTokens
 } = brinkUtils.test
-const { setupDeployers } = require('./helpers')
+const { setupDeployers, snapshotGas } = require('./helpers')
 const { expect } = chaiSolidity()
 
 const chainId = 1
@@ -41,23 +41,30 @@ describe('Proxy', function () {
     this.accountAddress = address
     this.accountCode = initCode
 
-    await singletonFactoryCaller.deploy(this.accountCode, salt)
-
     this.account = await this.Account.attach(this.accountAddress)
+
+    this.deployAccountPromise = singletonFactoryCaller.deploy(this.accountCode, salt)
   })
 
   describe('when proxy is deployed', function () {
     it('new proxy contract code should be stored predeployed computed address', async function () {
+      await this.deployAccountPromise
       expect(await ethers.provider.getCode(this.accountAddress)).to.not.equal('0x')
     })
 
     it('should set implementation', async function () {
+      await this.deployAccountPromise
       const implementation = await this.account.implementation()
       expect(implementation).to.be.equal(this.metaAccountImpl.address)
     })
 
     it('should set proxyOwner', async function () {
+      await this.deployAccountPromise
       expect(await this.account.proxyOwner()).to.be.equal(this.proxyOwner.address)
+    })
+
+    it('gas cost', async function () {
+      await snapshotGas(this.deployAccountPromise)
     })
   })
 

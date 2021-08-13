@@ -7,7 +7,7 @@ const {
   deployTestTokens,
   BN, BN18
 } = brinkUtils.test
-const { setupDeployers, getSigners } = require('./helpers')
+const { setupDeployers, getSigners, snapshotGas } = require('./helpers')
 const { expect } = chaiSolidity()
 
 const chainId = 1
@@ -40,7 +40,6 @@ describe('DeployAndExecute', function () {
     this.expiredBlock = this.latestBlock.sub(BN(1)) // 1 block ago
 
     this.testAccountCalls = await this.testAccountCalls.deploy()
-    
 
     const { address, initCode } = deployData(
       this.singletonFactory.address,
@@ -79,7 +78,7 @@ describe('DeployAndExecute', function () {
       })
 
       // data for the tokenToEth swap call
-      const execData = (await this.metaAccountImpl.connect(this.proxyOwner).populateTransaction.metaDelegateCall.apply(this, [
+      this.execData = (await this.metaAccountImpl.connect(this.proxyOwner).populateTransaction.metaDelegateCall.apply(this, [
         ...params, signature
       ])).data
 
@@ -88,19 +87,23 @@ describe('DeployAndExecute', function () {
         to: this.accountAddress,
         value: this.ethAmount
       })
-
-      // batched deploy account + metaDelegateCall
-      await this.deployAndExecute.connect(this.proxyOwner).deployAndExecute(this.accountCode, this.salt, execData)
-
-      // get final recipient balance
-      this.fRecipientBalance = await ethers.provider.getBalance(this.recipient.address)
     })
 
     it('should deploy the account and delegatecall testTransferETH() to transfer ETH', async function () {
+      // batched deploy account + metaDelegateCall
+      await this.deployAndExecute.connect(this.proxyOwner).deployAndExecute(this.accountCode, this.salt, this.execData)
+
+      // get final recipient balance
+      const fRecipientBalance = await ethers.provider.getBalance(this.recipient.address)
+
       expect(await ethers.provider.getCode(this.accountAddress)).to.not.equal('0x')
       expect(await this.tokenA.balanceOf(this.accountAddress)).to.equal(0)
       expect(await ethers.provider.getBalance(this.accountAddress)).to.equal(0)
-      expect(this.fRecipientBalance.sub(this.iRecipientBalance)).to.equal(this.ethAmount)
+      expect(fRecipientBalance.sub(this.iRecipientBalance)).to.equal(this.ethAmount)
+    })
+
+    it('gas cost', async function () {
+      await snapshotGas(this.deployAndExecute.connect(this.proxyOwner).deployAndExecute(this.accountCode, this.salt, this.execData))
     })
   })
 })
