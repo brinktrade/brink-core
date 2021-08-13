@@ -20,6 +20,7 @@
     "ethers": "^5.1.0",
     "hardhat": "^2.1.2",
     "moment": "^2.29.1",
+    "snap-shot-it": "^7.9.6",
     "solc-0.7.6": "npm:solc@0.7.6",
     "solidity-docgen": "^0.5.13"
   }

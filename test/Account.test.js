@@ -12,7 +12,7 @@ const {
   metaTxPromise,
   ZERO_ADDRESS
 } = brinkUtils.test
-const { setupMetaAccount, getSigners } = require('./helpers')
+const { setupMetaAccount, getSigners, snapshotGas } = require('./helpers')
 const { expect } = chaiSolidity()
 
 describe('Account', function () {
@@ -92,6 +92,10 @@ describe('Account', function () {
         )
       )).to.be.revertedWith('ERC20: transfer amount exceeds balance')
     })
+
+    it('gas cost', async function () {
+      await snapshotGas(this.metaAccount.connect(this.metaAccountOwner).externalCall(0, this.tokenA.address, this.tknTransferCall))
+    })
   })
 
   describe('delegateCall()', async function() {
@@ -127,6 +131,10 @@ describe('Account', function () {
         this.testAccountCalls.address,
         encodeFunctionCall('testRevert', ['bool'], [true])
       )).to.be.revertedWith('TestAccountCalls: reverted')
+    })
+
+    it('gas cost', async function () {
+      await snapshotGas(this.metaAccount.connect(this.metaAccountOwner).delegateCall(this.testAccountCalls.address, this.testCall))
     })
   })
 
@@ -184,6 +192,19 @@ describe('Account', function () {
         params: [this.testAccountCalls.address, encodeFunctionCall('testRevert', ['bool'], [true])]
       })).to.be.revertedWith('TestAccountCalls: reverted')
     })
+
+    it('gas cost', async function () {
+      const { promise } = await metaTxPromise({
+        contract: this.metaAccount,
+        method: 'metaDelegateCall',
+        signer: this.metaAccountOwner,
+        params: [
+          this.testAccountCalls.address,
+          encodeFunctionCall('testEvent', ['uint'], [this.mockUint.toString()])
+        ]
+      })
+      await snapshotGas(promise)
+    })
   })
 
   describe('metaPartialSignedDelegateCall()', function () {
@@ -236,6 +257,22 @@ describe('Account', function () {
         params: [ this.testAccountCalls.address, signedData ],
         unsignedData
       })).to.be.revertedWith('TestAccountCalls: reverted')
+    })
+
+    it('gas cost', async function () {
+      const { signedData, unsignedData } = splitCallData(encodeFunctionCall(
+        'testEvent',
+        ['uint256', 'int24', 'address'],
+        [ this.mockUint.toString(), this.mockInt, this.mockAddress ]
+      ), 1)
+      const { promise } = await metaTxPromise({
+        contract: this.metaAccount,
+        method: 'metaPartialSignedDelegateCall',
+        signer: this.metaAccountOwner,
+        params: [ this.testAccountCalls.address, signedData ],
+        unsignedData
+      })
+      await snapshotGas(promise)
     })
   })
 })
