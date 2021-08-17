@@ -5,14 +5,11 @@ Deployed once and used by many Proxy contracts as the implementation contract
 
 
 
-### `constructor(contract CallExecutor callExecutor, uint256 chainId_)` (public)
-
-This sets state on the canonical Account contract, not the proxies
-Proxy contracts read from canonical Account state through their implementation() address
+### `constructor(uint256 chainId_)` (public)
 
 
-Constructor sets call executor and the owner of ExecutorAccessController
 
+Constructor sets CHAIN_ID immutable constant
 
 ### `storageLoad(bytes32 ptr) → bytes32 data` (external)
 

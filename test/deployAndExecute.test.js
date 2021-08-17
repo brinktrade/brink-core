@@ -17,11 +17,9 @@ describe('DeployAndExecute', function () {
 
     this.Proxy = await ethers.getContractFactory('Proxy')
     this.Account = await ethers.getContractFactory('Account')
-    this.CallExecutor = await ethers.getContractFactory('CallExecutor')
     this.testAccountCalls = await ethers.getContractFactory('TestAccountCalls')
 
-    const callExecutor = await this.CallExecutor.deploy()
-    this.metaAccountImpl = await this.Account.deploy(callExecutor.address, chainId)
+    this.metaAccountImpl = await this.Account.deploy(chainId)
     this.salt = ethers.utils.formatBytes32String('some.salt')
     
     const { singletonFactory, deployAndExecute } = await setupDeployers()
