@@ -8,7 +8,7 @@ contract MockAccount is Account {
   // keccak256("MockAccount.mockBlockNum") : Storage pointer to mockBlockNum address
   bytes32 internal constant _mockBlockNumPtr = 0x309cc50dd5fa3f2b7dda8552a2789bf8dec0e6e9d7bce3582758e21eab93e630;
   
-  constructor (CallExecutor callExecutor) Account(callExecutor) {}
+  constructor (CallExecutor callExecutor, uint256 chainId_) Account(callExecutor, chainId_) {}
 
   // override so we can mock the current block number,
   // since mining blocks on ganache is too slow for the tests

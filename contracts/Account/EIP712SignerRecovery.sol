@@ -2,28 +2,15 @@
 pragma solidity >=0.7.6;
 
 import "@openzeppelin/contracts/cryptography/ECDSA.sol";
-import "../Proxy/ProxyGettable.sol";
 
 /// @title Provides signer address recovery for EIP-712 signed messages
 /// @notice https://github.com/ethereum/EIPs/pull/712
-contract EIP712SignerRecovery is ProxyGettable {
-  /// @dev Stores the domain separator for EIP-712 messages
-  /// @param contractName The name of this contract
-  /// @param contractVersion The version of this contract
-  /// @param chainId_ ID for this chain to ensure that EIP-712 can't be replayed on other chains
-  function _storeDomainSeparator (bytes memory contractName, bytes memory contractVersion, uint256 chainId_)
-    internal
-  {
-    bytes32 domainSeparator = keccak256(abi.encode(
-      EIP712_DOMAIN_TYPEHASH,
-      keccak256(contractName),
-      keccak256(contractVersion),
-      chainId_,
-      address(this)
-    ));
-    assembly {
-      sstore(DOMAIN_SEPARATOR_PTR, domainSeparator)
-    }
+contract EIP712SignerRecovery {
+
+  uint256 internal immutable CHAIN_ID;
+
+  constructor (uint256 chainId_) {
+    CHAIN_ID = chainId_;
   }
 
   /// @dev Recovers the signer address for an EIP-712 signed message
@@ -33,7 +20,14 @@ contract EIP712SignerRecovery is ProxyGettable {
     // generate the hash for the signed message
     bytes32 messageHash = keccak256(abi.encodePacked(
       "\x19\x01",
-      _domainSeparator(),
+      // hash the EIP712 domain separator
+      keccak256(abi.encode(
+        keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),
+        keccak256("BrinkAccount"),
+        keccak256("1"),
+        CHAIN_ID,
+        address(this)
+      )),
       dataHash
     ));
 

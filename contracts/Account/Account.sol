@@ -23,7 +23,8 @@ contract Account is ProxyGettable, EIP712SignerRecovery, CallExecutable {
   /// @notice This sets state on the canonical Account contract, not the proxies
   /// @notice Proxy contracts read from canonical Account state through their implementation() address
   /// @param callExecutor Used as a call proxy to ensure that msg.sender is never the account address
-  constructor(CallExecutor callExecutor) 
+  constructor(CallExecutor callExecutor, uint256 chainId_)
+    EIP712SignerRecovery(chainId_)
   {
     _setCallExecutor(callExecutor);
   }
@@ -40,7 +41,7 @@ contract Account is ProxyGettable, EIP712SignerRecovery, CallExecutable {
   /// @param to Address of the external contract to call
   /// @param data Call data to execute
   function externalCall(uint256 value, address to, bytes memory data) external {
-    require(_proxyOwner() == msg.sender, "NOT_OWNER");
+    require(proxyOwner() == msg.sender, "NOT_OWNER");
     assembly {
       let result := call(gas(), to, value, add(data, 0x20), mload(data), 0, 0)
       if eq(result, 0) {
@@ -54,7 +55,7 @@ contract Account is ProxyGettable, EIP712SignerRecovery, CallExecutable {
   /// @param to Address of the external contract to delegatecall
   /// @param data Call data to execute
   function delegateCall(address to, bytes memory data) external {
-    require(_proxyOwner() == msg.sender, "NOT_OWNER");
+    require(proxyOwner() == msg.sender, "NOT_OWNER");
     assembly {
       let result := delegatecall(gas(), to, add(data, 0x20), mload(data), 0, 0)
       if eq(result, 0) {
@@ -73,7 +74,7 @@ contract Account is ProxyGettable, EIP712SignerRecovery, CallExecutable {
       keccak256(abi.encode(META_DELEGATE_CALL_TYPEHASH, to, keccak256(data))),
       signature
     );
-    require(_proxyOwner() == signer, "NOT_OWNER");
+    require(proxyOwner() == signer, "NOT_OWNER");
 
     assembly {
       let result := delegatecall(gas(), to, add(data, 0x20), mload(data), 0, 0)
@@ -97,7 +98,7 @@ contract Account is ProxyGettable, EIP712SignerRecovery, CallExecutable {
       keccak256(abi.encode(META_PARTIAL_SIGNED_DELEGATE_CALL_TYPEHASH, to, keccak256(data))),
       signature
     );
-    require(_proxyOwner() == signer, "NOT_OWNER");
+    require(proxyOwner() == signer, "NOT_OWNER");
 
     bytes memory callData = abi.encodePacked(data, unsignedData);
 

@@ -1,19 +1,16 @@
 const { ethers } = require('hardhat')
 const { soliditySha3 } = require('web3-utils')
+const { expect } = require('chai')
 const brinkUtils = require('@brinkninja/utils')
-const { encodeFunctionCall } = brinkUtils
+const { BN, encodeFunctionCall, splitCallData } = brinkUtils
+const { ZERO_ADDRESS, BN18 } = brinkUtils.constants
 const {
-  BN, BN18,
-  chaiSolidity,
   deployTestTokens,
-  splitCallData,
   randomAddress,
   execMetaTx,
-  metaTxPromise,
-  ZERO_ADDRESS
-} = brinkUtils.test
+  metaTxPromise
+} = brinkUtils.testHelpers(ethers)
 const { setupMetaAccount, getSigners, snapshotGas } = require('./helpers')
-const { expect } = chaiSolidity()
 
 describe('Account', function () {
   beforeEach(async function () {

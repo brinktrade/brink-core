@@ -5,11 +5,10 @@ https://github.com/ethereum/EIPs/pull/712
 
 
 
-### `_storeDomainSeparator(bytes contractName, bytes contractVersion, uint256 chainId_)` (internal)
+### `constructor(uint256 chainId_)` (public)
 
 
 
-Stores the domain separator for EIP-712 messages
 
 
 ### `_recoverSigner(bytes32 dataHash, bytes signature) → address signer` (internal)

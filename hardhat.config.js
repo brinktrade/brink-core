@@ -1,5 +1,9 @@
 require('@nomiclabs/hardhat-ethers')
 
+const chai = require('chai')
+const { solidity } = require('ethereum-waffle')
+chai.use(solidity)
+
 module.exports = {
   networks: {
     hardhat: {

@@ -5,7 +5,7 @@ Deployed once and used by many Proxy contracts as the implementation contract
 
 
 
-### `constructor(contract CallExecutor callExecutor)` (public)
+### `constructor(contract CallExecutor callExecutor, uint256 chainId_)` (public)
 
 This sets state on the canonical Account contract, not the proxies
 Proxy contracts read from canonical Account state through their implementation() address
