@@ -1,14 +1,10 @@
 const { ethers } = require('hardhat')
+const { expect } = require('chai')
 const brinkUtils = require('@brinkninja/utils')
-const { encodeFunctionCall, deployData } = brinkUtils
-const {
-  chaiSolidity,
-  signMetaTx,
-  deployTestTokens,
-  BN, BN18
-} = brinkUtils.test
+const { BN, encodeFunctionCall, deployData } = brinkUtils
+const { BN18 } = brinkUtils.constants
+const { signMetaTx, deployTestTokens } = brinkUtils.testHelpers(ethers)
 const { setupDeployers, getSigners, snapshotGas } = require('./helpers')
-const { expect } = chaiSolidity()
 
 const chainId = 1
 
@@ -25,7 +21,7 @@ describe('DeployAndExecute', function () {
     this.testAccountCalls = await ethers.getContractFactory('TestAccountCalls')
 
     const callExecutor = await this.CallExecutor.deploy()
-    this.metaAccountImpl = await this.Account.deploy(callExecutor.address)
+    this.metaAccountImpl = await this.Account.deploy(callExecutor.address, chainId)
     this.salt = ethers.utils.formatBytes32String('some.salt')
     
     const { singletonFactory, deployAndExecute } = await setupDeployers()
@@ -46,7 +42,6 @@ describe('DeployAndExecute', function () {
       this.Proxy.bytecode,
       this.metaAccountImpl.address,
       this.proxyOwner.address,
-      chainId,
       this.salt
     )
     this.accountAddress = address

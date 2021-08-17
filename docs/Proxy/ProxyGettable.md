@@ -18,22 +18,4 @@ Returns the implementation address
 
 Returns the proxy owner address
 
-### `_implementation() → address impl` (internal)
-
-
-
-Internal function to read the implementation address
-
-### `_proxyOwner() → address owner` (internal)
-
-
-
-Internal function to read the proxy owner address
-
-### `_domainSeparator() → bytes32 domainSeparator` (internal)
-
-
-
-Internal function to read the domain separator
-
 

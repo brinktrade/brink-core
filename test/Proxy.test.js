@@ -1,13 +1,10 @@
 const { ethers } = require('hardhat')
+const { expect } = require('chai')
 const brinkUtils = require('@brinkninja/utils')
-const { deployData } = brinkUtils
-const {
-  BN, BN18,
-  chaiSolidity,
-  deployTestTokens
-} = brinkUtils.test
+const { BN, deployData } = brinkUtils
+const { BN18 } = brinkUtils.constants
+const { deployTestTokens } = brinkUtils.testHelpers(ethers)
 const { setupDeployers, snapshotGas } = require('./helpers')
-const { expect } = chaiSolidity()
 
 const chainId = 1
 
@@ -22,7 +19,7 @@ describe('Proxy', function () {
     const CallExecutor = await ethers.getContractFactory('CallExecutor')
     const callExecutor = await CallExecutor.deploy()
 
-    this.metaAccountImpl = await this.Account.deploy(callExecutor.address)
+    this.metaAccountImpl = await this.Account.deploy(callExecutor.address, chainId)
 
     const { singletonFactory, singletonFactoryCaller } = await setupDeployers()
     this.singletonFactory = singletonFactory
@@ -35,19 +32,19 @@ describe('Proxy', function () {
       this.Proxy.bytecode,
       this.metaAccountImpl.address,
       this.proxyOwner.address,
-      chainId,
       salt
     )
     this.accountAddress = address
     this.accountCode = initCode
 
     this.account = await this.Account.attach(this.accountAddress)
+    this.proxy = await this.Proxy.attach(this.accountAddress)
 
     this.deployAccountPromise = singletonFactoryCaller.deploy(this.accountCode, salt)
   })
 
   describe('when proxy is deployed', function () {
-    it('new proxy contract code should be stored predeployed computed address', async function () {
+    it('new proxy contract code should be stored at the predeployed computed address', async function () {
       await this.deployAccountPromise
       expect(await ethers.provider.getCode(this.accountAddress)).to.not.equal('0x')
     })
