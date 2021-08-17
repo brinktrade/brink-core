@@ -2,13 +2,12 @@
 
 pragma solidity ^0.7.0;
 
-import "../Called/CallExecutable.sol";
 import "../Proxy/ProxyGettable.sol";
 import "./EIP712SignerRecovery.sol";
 
 /// @title Brink account core
 /// @notice Deployed once and used by many Proxy contracts as the implementation contract
-contract Account is ProxyGettable, EIP712SignerRecovery, CallExecutable {
+contract Account is ProxyGettable, EIP712SignerRecovery {
   /// @dev Typehash for signed metaDelegateCall() messages
   /// @dev keccak256("MetaDelegateCall(address to,bytes data)")
   bytes32 internal constant META_DELEGATE_CALL_TYPEHASH =
@@ -19,15 +18,8 @@ contract Account is ProxyGettable, EIP712SignerRecovery, CallExecutable {
   bytes32 internal constant META_PARTIAL_SIGNED_DELEGATE_CALL_TYPEHASH = 
     0x0266ca6c1eb1acc96144ea62283cc37b45ab1d2f2e603f95733a75df34ee5e73;
 
-  /// @dev Constructor sets call executor and the owner of ExecutorAccessController
-  /// @notice This sets state on the canonical Account contract, not the proxies
-  /// @notice Proxy contracts read from canonical Account state through their implementation() address
-  /// @param callExecutor Used as a call proxy to ensure that msg.sender is never the account address
-  constructor(CallExecutor callExecutor, uint256 chainId_)
-    EIP712SignerRecovery(chainId_)
-  {
-    _setCallExecutor(callExecutor);
-  }
+  /// @dev Constructor sets CHAIN_ID immutable constant
+  constructor(uint256 chainId_) EIP712SignerRecovery(chainId_) { }
 
   /// @dev Loads bytes32 data stored at the given pointer
   /// @param ptr The pointer to the bytes32 data
