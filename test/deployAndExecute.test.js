@@ -72,7 +72,7 @@ describe('DeployAndExecute', function () {
 
       // data for the tokenToEth swap call
       this.execData = (await this.metaAccountImpl.connect(this.proxyOwner).populateTransaction.metaDelegateCall.apply(this, [
-        ...params, signature
+        ...params, signature, '0x'
       ])).data
 
       // send ETH to undeployed account address

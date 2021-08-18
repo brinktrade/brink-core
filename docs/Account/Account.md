@@ -33,19 +33,13 @@ Only executable directly by the proxy owner
 Makes a delegatecall to an external contract
 
 
-### `metaDelegateCall(address to, bytes data, bytes signature)` (external)
+### `metaDelegateCall(address to, bytes data, bytes signature, bytes unsignedData)` (external)
 
+WARNING: The `to` contract is responsible for secure handling of the call provided in the encoded
+`callData`. If the proxyOwner signs a metaDelegateCall to a malicious contract, this could result in total loss
+of their account.
 
-
-Makes a delegatecall to an external contract with message data signed by the proxy owner
-
-
-### `metaPartialSignedDelegateCall(address to, bytes data, bytes signature, bytes unsignedData)` (external)
-
-
-
-Makes a delegatecall to an external contract with message data signed by the proxy owner and unsigned data
-provided by the executor (msg.sender)
+Allows execution of a delegatecall with a valid signature from the proxyOwner
 
 
 
