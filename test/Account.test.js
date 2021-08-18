@@ -10,7 +10,16 @@ const {
   execMetaTx,
   metaTxPromise
 } = brinkUtils.testHelpers(ethers)
-const { setupMetaAccount, getSigners, snapshotGas } = require('./helpers')
+const {
+  setupMetaAccount,
+  setupContractOwnedAccount,
+  metaCallDataHash,
+  getSigners,
+  snapshotGas
+} = require('./helpers')
+
+// keccak256("MetaDelegateCall_EIP1271(address to,bytes data)")
+const META_DELEGATE_CALL_EIP1271_TYPEHASH = '0x1d3b50d88adeb95016e86033ab418b64b7ecd66b70783b0dca7b0afc8bfb8a1e'
 
 describe('Account', function () {
   beforeEach(async function () {
@@ -21,14 +30,13 @@ describe('Account', function () {
 
     const TestAccountCalls = await ethers.getContractFactory('TestAccountCalls')
     this.testAccountCalls = await TestAccountCalls.deploy()
-
-    const { metaAccount, account } = await setupMetaAccount()
-    this.metaAccount = metaAccount
-    this.account = account
   })
 
   describe('sending ETH to account address', function () {
     beforeEach(async function () {
+      const { metaAccount } = await setupMetaAccount()
+      this.metaAccount = metaAccount
+
       this.ethSendAmount = BN(3).mul(BN18)
       
       await this.defaultAccount.sendTransaction({
@@ -44,6 +52,9 @@ describe('Account', function () {
 
   describe('externalCall()', async function() {
     beforeEach(async function () {
+      const { metaAccount } = await setupMetaAccount()
+      this.metaAccount = metaAccount
+
       const { tokenA } = await deployTestTokens()
       this.tokenA = tokenA
       this.tknAmt = BN18.mul(2)
@@ -97,6 +108,9 @@ describe('Account', function () {
 
   describe('delegateCall()', async function() {
     beforeEach(async function () {
+      const { metaAccount } = await setupMetaAccount()
+      this.metaAccount = metaAccount
+
       const TestAccountCalls = await ethers.getContractFactory('TestAccountCalls');
       this.testAccountCalls = await TestAccountCalls.deploy()
       this.mockUint = BN18
@@ -136,6 +150,12 @@ describe('Account', function () {
   })
 
   describe('storageLoad()', function () {
+
+    beforeEach(async function () {
+      const { metaAccount } = await setupMetaAccount()
+      this.metaAccount = metaAccount
+    })
+
     it('should return the storage value at the given pointer', async function () {
       const inputVal = 123456
 
@@ -153,6 +173,9 @@ describe('Account', function () {
 
   describe('metaDelegateCall()', function () {
     beforeEach(async function () {
+      const { metaAccount } = await setupMetaAccount()
+      this.metaAccount = metaAccount
+
       this.mockUint = BN(12345)
       this.mockInt = BN(-6789)
       this.mockAddress = (await randomAddress()).address
@@ -244,6 +267,66 @@ describe('Account', function () {
         ],
         unsignedData: '0x'
       })
+      await snapshotGas(promise)
+    })
+  })
+
+  describe('metaDelegateCall_EIP1271()', function () {
+    beforeEach(async function () {
+      const { contractOwnedAccount, proxyOwner } = await setupContractOwnedAccount()
+      this.contractOwnedAccount = contractOwnedAccount
+      this.proxyOwner = proxyOwner
+
+      this.mockUint = BN(12345)
+      this.mockUint2 = BN(6789)
+
+      // these are just random hex data
+      this.validMockSignature = '0x6578c0ff9e2bebf086f8048d77e4bde3d6f7af7910b6ec0ba6b6b3308155a36ce1ca8f5f0ecacd678668b751c1737040c0b9d9d106cd5564e35c12daa0a891fd06'
+      this.invalidMockSignature = '0x0283e7dd0f00ba5fdf9a44b954777d45015b971d85288932afac977b33a742061017df511a0041bacbd255be4f82f16f2d61b629269dcfbe41557a132c5dcd4bdf'
+
+      this.validCallData = encodeFunctionCall(
+        'testEvent',
+        ['uint256'],
+        [ this.mockUint.toString() ]
+      )
+      this.validCallDataHash = metaCallDataHash({
+        metaCallTypeHash: META_DELEGATE_CALL_EIP1271_TYPEHASH,
+        to: this.testAccountCalls.address,
+        data: this.validCallData
+      })
+
+      this.invalidCallData = encodeFunctionCall(
+        'testEvent',
+        ['uint256'],
+        [ this.mockUint2.toString() ]
+      )
+
+      // The validity of the hash and signature are mocked by storing them in the proxyOwner contract, which will check
+      // that they exist using it's implementation of `isValidSignature`.
+      // For the purposes of these tests, the mock signature could be any arbitrary bytes data
+      await this.proxyOwner.setValidSignature(this.validCallDataHash, this.validMockSignature)
+    })
+
+    it('when proxyOwner validates that the call is signed, should execute the delegatecall', async function () {
+        const promise = this.contractOwnedAccount.metaDelegateCall_EIP1271(
+          this.testAccountCalls.address, this.validCallData, this.validMockSignature, '0x'
+        )
+        await expect(promise).to.emit(this.contractOwnedAccount, 'MockParamEvent').withArgs(this.mockUint)
+      }
+    )
+
+    it('when proxyOwner validation check for the call fails, should revert with \'INVALID_SIGNATURE\'', async function () {
+        const promise = this.contractOwnedAccount.metaDelegateCall_EIP1271(
+          this.testAccountCalls.address, this.invalidCallData, this.invalidMockSignature, '0x'
+        )
+        await expect(promise).to.be.revertedWith('INVALID_SIGNATURE');
+      }
+    )
+
+    it('gas cost', async function () {
+      const promise = this.contractOwnedAccount.metaDelegateCall_EIP1271(
+        this.testAccountCalls.address, this.validCallData, this.validMockSignature, '0x'
+      )
       await snapshotGas(promise)
     })
   })
