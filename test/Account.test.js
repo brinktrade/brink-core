@@ -6,7 +6,6 @@ const { BN, encodeFunctionCall, splitCallData } = brinkUtils
 const { ZERO_ADDRESS, BN18 } = brinkUtils.constants
 const {
   deployTestTokens,
-  randomAddress,
   execMetaTx,
   metaTxPromise
 } = brinkUtils.testHelpers(ethers)
@@ -26,7 +25,7 @@ describe('Account', function () {
     const { defaultAccount, metaAccountOwner } = await getSigners()
     this.defaultAccount = defaultAccount
     this.metaAccountOwner = metaAccountOwner
-    this.transferRecipient = await randomAddress()
+    this.transferRecipientAddress = '0xaff9aeda442C8D27a7F01490CA520dbdf088d1a2'
 
     const TestAccountCalls = await ethers.getContractFactory('TestAccountCalls')
     this.testAccountCalls = await TestAccountCalls.deploy()
@@ -62,14 +61,14 @@ describe('Account', function () {
       this.tknTransferCall = encodeFunctionCall(
         'transfer',
         ['address', 'uint'],
-        [this.transferRecipient.address, this.tknAmt.toString()]
+        [this.transferRecipientAddress, this.tknAmt.toString()]
       )
     })
     it('call from account owner should call external contract', async function() {
       // testing this with an ERC20.transfer() call
       await this.metaAccount.connect(this.metaAccountOwner).externalCall(0, this.tokenA.address, this.tknTransferCall)
       expect(await this.tokenA.balanceOf(this.metaAccount.address)).to.equal(0)
-      expect(await this.tokenA.balanceOf(this.transferRecipient.address)).to.equal(this.tknAmt)
+      expect(await this.tokenA.balanceOf(this.transferRecipientAddress)).to.equal(this.tknAmt)
     })
 
     it('call from non-owner should revert with \'NOT_OWNER\'', async function() {
@@ -79,13 +78,13 @@ describe('Account', function () {
     })
 
     it('call from account owner with value and 0x data should send ETH', async function() {
-      const initalBalance = await ethers.provider.getBalance(this.transferRecipient.address)
+      const initalBalance = await ethers.provider.getBalance(this.transferRecipientAddress)
       await this.defaultAccount.sendTransaction({
         to: this.metaAccount.address,
         value: 1000000
       })
-      await this.metaAccount.connect(this.metaAccountOwner).externalCall(100, this.transferRecipient.address, '0x')
-      const newBalance = await ethers.provider.getBalance(this.transferRecipient.address)
+      await this.metaAccount.connect(this.metaAccountOwner).externalCall(100, this.transferRecipientAddress, '0x')
+      const newBalance = await ethers.provider.getBalance(this.transferRecipientAddress)
       expect(BN(newBalance) > BN(initalBalance))
     })
 
@@ -96,7 +95,7 @@ describe('Account', function () {
         encodeFunctionCall(
           'transfer',
           ['address', 'uint'],
-          [this.transferRecipient.address, this.tknAmt.add(1).toString()] // transfer too much
+          [this.transferRecipientAddress, this.tknAmt.add(1).toString()] // transfer too much
         )
       )).to.be.revertedWith('ERC20: transfer amount exceeds balance')
     })
@@ -115,7 +114,7 @@ describe('Account', function () {
       this.testAccountCalls = await TestAccountCalls.deploy()
       this.mockUint = BN18
       this.mockInt = -12345
-      this.mockAddress = (await randomAddress()).address
+      this.mockAddress = '0x26828defe92D67a291995A66d0442C4A3Bca5b12'
       this.testCall = encodeFunctionCall(
         'testEvent',
         ['uint', 'int24', 'address'],
@@ -178,7 +177,7 @@ describe('Account', function () {
 
       this.mockUint = BN(12345)
       this.mockInt = BN(-6789)
-      this.mockAddress = (await randomAddress()).address
+      this.mockAddress = '0xf312da71C80381C393fbbD48BBDb52e91c69a322'
     })
 
     it('when signer is proxy owner, should execute the delegatecall', async function () {
