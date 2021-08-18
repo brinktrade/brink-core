@@ -35,7 +35,9 @@ Makes a delegatecall to an external contract
 
 ### `metaDelegateCall(address to, bytes data, bytes signature, bytes unsignedData)` (external)
 
-
+WARNING: The `to` contract is responsible for secure handling of the call provided in the encoded
+`callData`. If the proxyOwner signs a metaDelegateCall to a malicious contract, this could result in total loss
+of their account.
 
 Allows execution of a delegatecall with a valid signature from the proxyOwner
 

@@ -57,7 +57,9 @@ contract Account is ProxyGettable, EIP712SignerRecovery {
   /// @param data Call data to include in the delegatecall, signed by the proxyOwner
   /// @param signature Signature of the proxyOwner
   /// @param unsignedData Unsigned call data appended to the delegatecall
-  /// @notice
+  /// @notice WARNING: The `to` contract is responsible for secure handling of the call provided in the encoded
+  /// `callData`. If the proxyOwner signs a metaDelegateCall to a malicious contract, this could result in total loss
+  /// of their account.
   function metaDelegateCall(
     address to, bytes memory data, bytes memory signature, bytes memory unsignedData
   ) external {
