@@ -154,59 +154,6 @@ describe('Account', function () {
   describe('metaDelegateCall()', function () {
     beforeEach(async function () {
       this.mockUint = BN(12345)
-    })
-
-    it('when signer is proxy owner, should execute the delegatecall', async function () {
-      const { promise } = await metaTxPromise({
-        contract: this.metaAccount,
-        method: 'metaDelegateCall',
-        signer: this.metaAccountOwner,
-        params: [
-          this.testAccountCalls.address,
-          encodeFunctionCall('testEvent', ['uint'], [this.mockUint.toString()])
-        ]
-      })
-      await expect(promise).to.emit(this.metaAccount, 'MockParamEvent').withArgs(this.mockUint)
-    })
-
-    it('when signer is not proxy owner, should revert with NOT_OWNER', async function () {
-      await expect(execMetaTx({
-        contract: this.metaAccount,
-        method: 'metaDelegateCall',
-        signer: this.defaultAccount,
-        params: [
-          this.testAccountCalls.address,
-          encodeFunctionCall('testEvent', ['uint'], [this.mockUint.toString()])
-        ]
-      })).to.be.revertedWith('NOT_OWNER')
-    })
-
-    it('when call reverts, metaDelegateCall should revert', async function () {
-      await expect(execMetaTx({
-        contract: this.metaAccount,
-        method: 'metaDelegateCall',
-        signer: this.metaAccountOwner,
-        params: [this.testAccountCalls.address, encodeFunctionCall('testRevert', ['bool'], [true])]
-      })).to.be.revertedWith('TestAccountCalls: reverted')
-    })
-
-    it('gas cost', async function () {
-      const { promise } = await metaTxPromise({
-        contract: this.metaAccount,
-        method: 'metaDelegateCall',
-        signer: this.metaAccountOwner,
-        params: [
-          this.testAccountCalls.address,
-          encodeFunctionCall('testEvent', ['uint'], [this.mockUint.toString()])
-        ]
-      })
-      await snapshotGas(promise)
-    })
-  })
-
-  describe('metaPartialSignedDelegateCall()', function () {
-    beforeEach(async function () {
-      this.mockUint = BN(12345)
       this.mockInt = BN(-6789)
       this.mockAddress = (await randomAddress()).address
     })
@@ -219,13 +166,27 @@ describe('Account', function () {
       ), 1)
       const { promise } = await metaTxPromise({
         contract: this.metaAccount,
-        method: 'metaPartialSignedDelegateCall',
+        method: 'metaDelegateCall',
         signer: this.metaAccountOwner,
         params: [ this.testAccountCalls.address, signedData ],
         unsignedData
       })
       await expect(promise).to.emit(this.metaAccount, 'MockParamsEvent')
         .withArgs(this.mockUint, this.mockInt, this.mockAddress)
+    })
+
+    it('when sent with a valid signature and call data to a function that does not expect appended unsigned data', async function () {
+      const { promise } = await metaTxPromise({
+        contract: this.metaAccount,
+        method: 'metaDelegateCall',
+        signer: this.metaAccountOwner,
+        params: [
+          this.testAccountCalls.address,
+          encodeFunctionCall('testEvent', ['uint'], [this.mockUint.toString()])
+        ],
+        unsignedData: '0x'
+      })
+      await expect(promise).to.emit(this.metaAccount, 'MockParamEvent').withArgs(this.mockUint)
     })
 
     it('when signer is not proxy owner, should revert with NOT_OWNER', async function () {
@@ -236,27 +197,27 @@ describe('Account', function () {
       ), 1)
       await expect(execMetaTx({
         contract: this.metaAccount,
-        method: 'metaPartialSignedDelegateCall',
+        method: 'metaDelegateCall',
         signer: this.defaultAccount,
         params: [ this.testAccountCalls.address, signedData ],
         unsignedData
       })).to.be.revertedWith('NOT_OWNER')
     })
 
-    it('when call reverts, metaPartialSignedDelegateCall should revert', async function () {
+    it('when call reverts, metaDelegateCall should revert', async function () {
       const { signedData, unsignedData } = splitCallData(encodeFunctionCall(
         'testRevert', ['bool'], [true ]
       ), 0)
       await expect(execMetaTx({
         contract: this.metaAccount,
-        method: 'metaPartialSignedDelegateCall',
+        method: 'metaDelegateCall',
         signer: this.metaAccountOwner,
         params: [ this.testAccountCalls.address, signedData ],
         unsignedData
       })).to.be.revertedWith('TestAccountCalls: reverted')
     })
 
-    it('gas cost', async function () {
+    it('gas cost with unsigned data', async function () {
       const { signedData, unsignedData } = splitCallData(encodeFunctionCall(
         'testEvent',
         ['uint256', 'int24', 'address'],
@@ -264,10 +225,24 @@ describe('Account', function () {
       ), 1)
       const { promise } = await metaTxPromise({
         contract: this.metaAccount,
-        method: 'metaPartialSignedDelegateCall',
+        method: 'metaDelegateCall',
         signer: this.metaAccountOwner,
         params: [ this.testAccountCalls.address, signedData ],
         unsignedData
+      })
+      await snapshotGas(promise)
+    })
+
+    it('gas cost with empty unsigned data', async function () {
+      const { promise } = await metaTxPromise({
+        contract: this.metaAccount,
+        method: 'metaDelegateCall',
+        signer: this.metaAccountOwner,
+        params: [
+          this.testAccountCalls.address,
+          encodeFunctionCall('testEvent', ['uint'], [this.mockUint.toString()])
+        ],
+        unsignedData: '0x'
       })
       await snapshotGas(promise)
     })

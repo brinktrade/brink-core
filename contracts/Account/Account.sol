@@ -13,11 +13,6 @@ contract Account is ProxyGettable, EIP712SignerRecovery {
   bytes32 internal constant META_DELEGATE_CALL_TYPEHASH =
     0x023ce5d01636bb12b4ffde3c4f5a66fb1044aa0dbc251394e60f0a26f1591043;
 
-  /// @dev Typehash for signed metaPartialSignedDelegateCall() messages
-  /// @dev keccak256("MetaPartialSignedDelegateCall(address to,bytes data)")
-  bytes32 internal constant META_PARTIAL_SIGNED_DELEGATE_CALL_TYPEHASH = 
-    0x0266ca6c1eb1acc96144ea62283cc37b45ab1d2f2e603f95733a75df34ee5e73;
-
   /// @dev Constructor sets CHAIN_ID immutable constant
   constructor(uint256 chainId_) EIP712SignerRecovery(chainId_) { }
 
@@ -57,37 +52,17 @@ contract Account is ProxyGettable, EIP712SignerRecovery {
     }
   }
 
-  /// @dev Makes a delegatecall to an external contract with message data signed by the proxy owner
-  /// @param to Address of the external contract to delegatecall
-  /// @param data Call data to execute
-  /// @param signature Signature of the proxy owner
-  function metaDelegateCall(address to, bytes memory data, bytes memory signature) external {
-    address signer = _recoverSigner(
-      keccak256(abi.encode(META_DELEGATE_CALL_TYPEHASH, to, keccak256(data))),
-      signature
-    );
-    require(proxyOwner() == signer, "NOT_OWNER");
-
-    assembly {
-      let result := delegatecall(gas(), to, add(data, 0x20), mload(data), 0, 0)
-      if eq(result, 0) {
-        returndatacopy(0, 0, returndatasize())
-        revert(0, returndatasize())
-      }
-    }
-  }
-
-  /// @dev Makes a delegatecall to an external contract with message data signed by the proxy owner and unsigned data
-  /// provided by the executor (msg.sender)
-  /// @param to Address of the external contract to delegatecall
-  /// @param data Signed call data to include in the delegatecall
-  /// @param signature Signature of the proxy owner
-  /// @param unsignedData Unsigned call data to include in the delegatecall
-  function metaPartialSignedDelegateCall(
+  /// @dev Allows execution of a delegatecall with a valid signature from the proxyOwner
+  /// @param to Address of the external contract to delegatecall, signed by the proxyOwner
+  /// @param data Call data to include in the delegatecall, signed by the proxyOwner
+  /// @param signature Signature of the proxyOwner
+  /// @param unsignedData Unsigned call data appended to the delegatecall
+  /// @notice
+  function metaDelegateCall(
     address to, bytes memory data, bytes memory signature, bytes memory unsignedData
   ) external {
     address signer = _recoverSigner(
-      keccak256(abi.encode(META_PARTIAL_SIGNED_DELEGATE_CALL_TYPEHASH, to, keccak256(data))),
+      keccak256(abi.encode(META_DELEGATE_CALL_TYPEHASH, to, keccak256(data))),
       signature
     );
     require(proxyOwner() == signer, "NOT_OWNER");
