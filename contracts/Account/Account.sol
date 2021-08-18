@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-
-pragma solidity ^0.7.0;
+pragma solidity >=0.7.6;
 
 import "../Proxy/ProxyGettable.sol";
 import "./EIP712SignerRecovery.sol";
