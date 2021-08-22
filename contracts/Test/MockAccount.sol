@@ -25,7 +25,7 @@ contract MockAccount is Account {
   }
 
   function __mockBitmap(uint256 bitmapIndex, uint256 mockBitmap) public {
-    bytes32 ptr = keccak256(abi.encodePacked("replayProtectionBitmaps", bitmapIndex));
+    bytes32 ptr = keccak256(abi.encodePacked("bmp", bitmapIndex));
     assembly {
       sstore(ptr, mockBitmap)
     }
