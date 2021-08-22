@@ -1,12 +1,17 @@
-# Brink
+# brink-core
 
-In-depth documentation on Brink is available at [Brink's Gitbook](https://app.gitbook.com/@brink/s/brink/)
+Core smart contracts for Brink
 
-## Local Development
-The following assumes the use of `node@>=12`
-### Install Dependencies
+Read our [documentation](https://brink.gitbook.io/brink/getting-started/platform-overview) for more details.
+
+## Install
+
 `yarn install`
-### Compile Contracts
+
+## Compile
+
 `yarn compile`
-### Run Tests
+
+## Test
+
 `yarn test`
