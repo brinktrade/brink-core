@@ -1,6 +1,6 @@
 {
   "name": "@brinkninja/core",
-  "version": "0.4.1",
+  "version": "1.0.0-beta.0",
   "dependencies": {
     "@openzeppelin/contracts": "3.4.1-solc-0.7-2",
     "require-directory": "^2.1.1"
