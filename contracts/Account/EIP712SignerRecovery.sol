@@ -32,6 +32,6 @@ contract EIP712SignerRecovery {
     ));
 
     // recover the signer address from the signed messageHash and return
-    signer = ECDSA.recover(messageHash, signature);
+    return ECDSA.recover(messageHash, signature);
   }
 }
