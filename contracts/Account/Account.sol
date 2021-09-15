@@ -9,17 +9,16 @@ import "./EIP1271Validator.sol";
 /// @notice Deployed once and used by many Proxy contracts as the implementation contract
 contract Account is ProxyGettable, EIP712SignerRecovery, EIP1271Validator {
   /// @dev Typehash for signed metaDelegateCall() messages
-  /// @dev keccak256("MetaDelegateCall(address to,bytes data)")
-  bytes32 internal constant META_DELEGATE_CALL_TYPEHASH =
-    0x023ce5d01636bb12b4ffde3c4f5a66fb1044aa0dbc251394e60f0a26f1591043;
+  bytes32 internal immutable META_DELEGATE_CALL_TYPEHASH;
 
   /// @dev Typehash for signed metaDelegateCall() messages
-  /// @dev keccak256("MetaDelegateCall_EIP1271(address to,bytes data)")
-  bytes32 internal constant META_DELEGATE_CALL_EIP1271_TYPEHASH =
-    0x1d3b50d88adeb95016e86033ab418b64b7ecd66b70783b0dca7b0afc8bfb8a1e;
+  bytes32 internal immutable META_DELEGATE_CALL_EIP1271_TYPEHASH;
 
-  /// @dev Constructor sets CHAIN_ID immutable constant
-  constructor(uint256 chainId_) EIP712SignerRecovery(chainId_) { }
+  /// @dev Constructor sets immutable constants
+  constructor(uint256 chainId_) EIP712SignerRecovery(chainId_) { 
+    META_DELEGATE_CALL_TYPEHASH = keccak256("MetaDelegateCall(address to,bytes data)");
+    META_DELEGATE_CALL_EIP1271_TYPEHASH = keccak256("MetaDelegateCall_EIP1271(address to,bytes data)");
+  }
 
   /// @dev Loads bytes32 data stored at the given pointer
   /// @param ptr The pointer to the bytes32 data
