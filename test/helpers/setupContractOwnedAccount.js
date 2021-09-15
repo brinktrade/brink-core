@@ -1,8 +1,6 @@
 const { ethers } = require('hardhat')
 const getSigners = require('./getSigners')
 
-const chainId = 1
-
 const setupContractOwnedAccount = async () => {
   const MockAccount = await ethers.getContractFactory('MockAccount')
 
@@ -18,7 +16,7 @@ const setupContractOwnedAccount = async () => {
 
   const proxyOwner = await MockEIP1271Validator.attach(eip1271ContractSigner.address)
 
-  const canonicalAccount = await MockAccount.deploy(chainId)
+  const canonicalAccount = await MockAccount.deploy()
   const proxy = await Proxy.deploy(canonicalAccount.address, proxyOwner.address)
   const contractOwnedAccount = await ethers.getContractAt('MockAccountWithTestCalls', proxy.address)
 

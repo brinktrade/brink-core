@@ -18,8 +18,7 @@ contract Account is ProxyGettable, EIP712SignerRecovery, EIP1271Validator {
   bytes32 internal constant META_DELEGATE_CALL_EIP1271_TYPEHASH =
     0x1d3b50d88adeb95016e86033ab418b64b7ecd66b70783b0dca7b0afc8bfb8a1e;
 
-  /// @dev Constructor sets CHAIN_ID immutable constant
-  constructor(uint256 chainId_) EIP712SignerRecovery(chainId_) { }
+  constructor() EIP712SignerRecovery() { }
 
   /// @dev Loads bytes32 data stored at the given pointer
   /// @param ptr The pointer to the bytes32 data

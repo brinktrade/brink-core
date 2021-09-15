@@ -6,8 +6,6 @@ const { BN18 } = brinkUtils.constants
 const { signMetaTx, deployTestTokens } = brinkUtils.testHelpers(ethers)
 const { setupDeployers, getSigners, snapshotGas } = require('./helpers')
 
-const chainId = 1
-
 describe('DeployAndExecute', function () {
   beforeEach(async function () {
     const signers = await getSigners()
@@ -19,7 +17,7 @@ describe('DeployAndExecute', function () {
     this.Account = await ethers.getContractFactory('Account')
     this.testAccountCalls = await ethers.getContractFactory('TestAccountCalls')
 
-    this.metaAccountImpl = await this.Account.deploy(chainId)
+    this.metaAccountImpl = await this.Account.deploy()
     this.salt = ethers.utils.formatBytes32String('some.salt')
     
     const { singletonFactory, deployAndExecute } = await setupDeployers()

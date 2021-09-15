@@ -6,8 +6,6 @@ const { BN18 } = brinkUtils.constants
 const { deployTestTokens } = brinkUtils.testHelpers(ethers)
 const { setupDeployers, snapshotGas } = require('./helpers')
 
-const chainId = 1
-
 describe('Proxy', function () {
   beforeEach(async function () {
     const [defaultAccount, proxyOwner] = await ethers.getSigners()
@@ -16,7 +14,7 @@ describe('Proxy', function () {
     this.Proxy = await ethers.getContractFactory('Proxy')
     this.Account = await ethers.getContractFactory('Account')
 
-    this.metaAccountImpl = await this.Account.deploy(chainId)
+    this.metaAccountImpl = await this.Account.deploy()
 
     const { singletonFactory, singletonFactoryCaller } = await setupDeployers()
     this.singletonFactory = singletonFactory

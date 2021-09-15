@@ -6,13 +6,7 @@ import "@openzeppelin/contracts/cryptography/ECDSA.sol";
 /// @title Provides signer address recovery for EIP-712 signed messages
 /// @notice https://github.com/ethereum/EIPs/pull/712
 contract EIP712SignerRecovery {
-
-  uint256 internal immutable CHAIN_ID;
-
-  constructor (uint256 chainId_) {
-    CHAIN_ID = chainId_;
-  }
-
+  
   /// @dev Recovers the signer address for an EIP-712 signed message
   /// @param dataHash Hash of the data included in the message
   /// @param signature An EIP-712 signature
@@ -25,7 +19,7 @@ contract EIP712SignerRecovery {
         keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),
         keccak256("BrinkAccount"),
         keccak256("1"),
-        CHAIN_ID,
+        this.getChainId(),
         address(this)
       )),
       dataHash
@@ -33,5 +27,14 @@ contract EIP712SignerRecovery {
 
     // recover the signer address from the signed messageHash and return
     signer = ECDSA.recover(messageHash, signature);
+  }
+
+  /// @dev Gets the current chain id
+  function getChainId() public pure returns (uint256 chainId) {
+    uint256 id;
+    assembly {
+        id := chainid()
+    }
+    return id;
   }
 }
