@@ -7,7 +7,7 @@ import "../Interfaces/ISingletonFactory.sol";
  * @dev Contract for batching CREATE2 contract deployment and an initial call into 1 tx
  */
 contract DeployAndExecute {
-  ISingletonFactory singletonFactory;
+  ISingletonFactory immutable singletonFactory;
 
   /**
   * @dev The constructor sets a SingletonFactory
