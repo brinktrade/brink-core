@@ -11,7 +11,7 @@ contract Account is ProxyGettable, EIP712SignerRecovery, EIP1271Validator {
   /// @dev Typehash for signed metaDelegateCall() messages
   bytes32 internal immutable META_DELEGATE_CALL_TYPEHASH;
 
-  /// @dev Typehash for signed metaDelegateCall() messages
+  /// @dev Typehash for signed metaDelegateCall_EIP1271() messages
   bytes32 internal immutable META_DELEGATE_CALL_EIP1271_TYPEHASH;
 
   /// @dev Constructor sets immutable constants

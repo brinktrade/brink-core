@@ -7,8 +7,7 @@ import "../Interfaces/IERC1271.sol";
 /// @notice https://github.com/ethereum/EIPs/issues/1271
 contract EIP1271Validator {
 
-  // bytes4(keccak256("isValidSignature(bytes32,bytes)")
-  bytes4 constant internal MAGICVALUE = 0x1626ba7e;
+  bytes4 constant internal MAGICVALUE = bytes4(keccak256("isValidSignature(bytes32,bytes)"));
 
   /**
    * @dev Should return whether the signature provided is valid for the provided hash
