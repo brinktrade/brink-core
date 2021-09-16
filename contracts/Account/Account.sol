@@ -47,13 +47,7 @@ contract Account is ProxyGettable, EIP712SignerRecovery, EIP1271Validator {
   /// @param data Call data to execute
   function delegateCall(address to, bytes memory data) external {
     require(proxyOwner() == msg.sender, "NOT_OWNER");
-    assembly {
-      let result := delegatecall(gas(), to, add(data, 0x20), mload(data), 0, 0)
-      if eq(result, 0) {
-        returndatacopy(0, 0, returndatasize())
-        revert(0, returndatasize())
-      }
-    }
+    _executeDelegateCall(to, data);
   }
 
   /// @dev Allows execution of a delegatecall with a valid signature from the proxyOwner. Uses EIP-712
@@ -75,14 +69,7 @@ contract Account is ProxyGettable, EIP712SignerRecovery, EIP1271Validator {
     require(proxyOwner() == signer, "NOT_OWNER");
 
     bytes memory callData = abi.encodePacked(data, unsignedData);
-
-    assembly {
-      let result := delegatecall(gas(), to, add(callData, 0x20), mload(callData), 0, 0)
-      if eq(result, 0) {
-        returndatacopy(0, 0, returndatasize())
-        revert(0, returndatasize())
-      }
-    }
+    _executeDelegateCall(to, callData);
   }
 
   /// @dev Allows execution of a delegatecall if proxyOwner is a smart contract. Uses EIP-1271
@@ -104,11 +91,17 @@ contract Account is ProxyGettable, EIP712SignerRecovery, EIP1271Validator {
     ), "INVALID_SIGNATURE");
 
     bytes memory callData = abi.encodePacked(data, unsignedData);
+    _executeDelegateCall(to, callData);
+  }
 
+  /// @dev Executes a delegate call
+  /// @param to Address of the external contract to delegatecall
+  /// @param data Call data to execute
+  function _executeDelegateCall(address to, bytes memory data) internal {
     assembly {
-      let result := delegatecall(gas(), to, add(callData, 0x20), mload(callData), 0, 0)
+      let result := delegatecall(gas(), to, add(data, 0x20), mload(data), 0, 0)
+      returndatacopy(0, 0, returndatasize())
       if eq(result, 0) {
-        returndatacopy(0, 0, returndatasize())
         revert(0, returndatasize())
       }
     }
