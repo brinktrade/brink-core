@@ -8,6 +8,11 @@ import "./EIP1271Validator.sol";
 /// @title Brink account core
 /// @notice Deployed once and used by many Proxy contracts as the implementation contract
 contract Account is ProxyGettable, EIP712SignerRecovery, EIP1271Validator {
+
+  /// @dev Magic value to protect contract from direct calls
+  uint private constant MAGIC = 285387353707; // 'Brink' when converted to Hex, then converted to string :)
+  uint private magic = MAGIC;
+
   /// @dev Typehash for signed metaDelegateCall() messages
   bytes32 internal immutable META_DELEGATE_CALL_TYPEHASH;
 
@@ -46,6 +51,7 @@ contract Account is ProxyGettable, EIP712SignerRecovery, EIP1271Validator {
   /// @param to Address of the external contract to delegatecall
   /// @param data Call data to execute
   function delegateCall(address to, bytes memory data) external {
+    require(_isDelegated());
     require(proxyOwner() == msg.sender, "NOT_OWNER");
     assembly {
       let result := delegatecall(gas(), to, add(data, 0x20), mload(data), 0, 0)
@@ -72,6 +78,7 @@ contract Account is ProxyGettable, EIP712SignerRecovery, EIP1271Validator {
       keccak256(abi.encode(META_DELEGATE_CALL_TYPEHASH, to, keccak256(data))),
       signature
     );
+    require(_isDelegated());
     require(proxyOwner() == signer, "NOT_OWNER");
 
     bytes memory callData = abi.encodePacked(data, unsignedData);
@@ -97,6 +104,7 @@ contract Account is ProxyGettable, EIP712SignerRecovery, EIP1271Validator {
   function metaDelegateCall_EIP1271(
     address to, bytes memory data, bytes memory signature, bytes memory unsignedData
   ) external {
+    require(_isDelegated());
     require(_isValidSignature(
       proxyOwner(),
       keccak256(abi.encode(META_DELEGATE_CALL_EIP1271_TYPEHASH, to, keccak256(data))),
@@ -112,5 +120,10 @@ contract Account is ProxyGettable, EIP712SignerRecovery, EIP1271Validator {
         revert(0, returndatasize())
       }
     }
+  }
+
+  /// @dev Returns true if the contract is being called by a delegatecall, else false
+  function _isDelegated() internal view returns (bool) {
+    return magic != MAGIC;
   }
 }
