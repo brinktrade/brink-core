@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.7.6;
 
-import "../Proxy/ProxyGettable.sol";
+import "../Proxy/ProxyStorage.sol";
 import "./EIP712SignerRecovery.sol";
 import "./EIP1271Validator.sol";
 
 /// @title Brink account core
 /// @notice Deployed once and used by many Proxy contracts as the implementation contract
-contract Account is ProxyGettable, EIP712SignerRecovery, EIP1271Validator {
+contract Account is ProxyStorage, EIP712SignerRecovery, EIP1271Validator {
   /// @dev Typehash for signed metaDelegateCall() messages
   bytes32 internal immutable META_DELEGATE_CALL_TYPEHASH;
 
@@ -32,7 +32,7 @@ contract Account is ProxyGettable, EIP712SignerRecovery, EIP1271Validator {
   /// @param to Address of the external contract to call
   /// @param data Call data to execute
   function externalCall(uint256 value, address to, bytes memory data) external {
-    require(proxyOwner() == msg.sender, "NOT_OWNER");
+    require(PROXY_OWNER == msg.sender, "NOT_OWNER");
     assembly {
       let result := call(gas(), to, value, add(data, 0x20), mload(data), 0, 0)
       if eq(result, 0) {
@@ -46,7 +46,7 @@ contract Account is ProxyGettable, EIP712SignerRecovery, EIP1271Validator {
   /// @param to Address of the external contract to delegatecall
   /// @param data Call data to execute
   function delegateCall(address to, bytes memory data) external {
-    require(proxyOwner() == msg.sender, "NOT_OWNER");
+    require(PROXY_OWNER == msg.sender, "NOT_OWNER");
     assembly {
       let result := delegatecall(gas(), to, add(data, 0x20), mload(data), 0, 0)
       if eq(result, 0) {
@@ -72,7 +72,7 @@ contract Account is ProxyGettable, EIP712SignerRecovery, EIP1271Validator {
       keccak256(abi.encode(META_DELEGATE_CALL_TYPEHASH, to, keccak256(data))),
       signature
     );
-    require(proxyOwner() == signer, "NOT_OWNER");
+    require(PROXY_OWNER == signer, "NOT_OWNER");
 
     bytes memory callData = abi.encodePacked(data, unsignedData);
 
@@ -98,7 +98,7 @@ contract Account is ProxyGettable, EIP712SignerRecovery, EIP1271Validator {
     address to, bytes memory data, bytes memory signature, bytes memory unsignedData
   ) external {
     require(_isValidSignature(
-      proxyOwner(),
+      PROXY_OWNER,
       keccak256(abi.encode(META_DELEGATE_CALL_EIP1271_TYPEHASH, to, keccak256(data))),
       signature
     ), "INVALID_SIGNATURE");

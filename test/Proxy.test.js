@@ -48,13 +48,13 @@ describe('Proxy', function () {
 
     it('should set implementation', async function () {
       await this.deployAccountPromise
-      const implementation = await this.account.implementation()
+      const implementation = await this.account.IMPLEMENTATION()
       expect(implementation).to.be.equal(this.metaAccountImpl.address)
     })
 
     it('should set proxyOwner', async function () {
       await this.deployAccountPromise
-      expect(await this.account.proxyOwner()).to.be.equal(this.proxyOwner.address)
+      expect(await this.account.PROXY_OWNER()).to.be.equal(this.proxyOwner.address)
     })
 
     it('gas cost', async function () {

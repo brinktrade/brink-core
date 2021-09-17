@@ -14,18 +14,18 @@ import "./ProxyStorage.sol";
  */
 contract Proxy is ProxyStorage {
   /**
-  * @dev The constructor sets the `implementation` contract address and the initial `proxyOwner`
+  * @dev The constructor sets the `IMPLEMENTATION` contract address and the initial `PROXY_OWNER`
   */
   constructor(address implementation, address proxyOwner) {
-    _implementation = implementation;
-    _owner = proxyOwner;
+    IMPLEMENTATION = implementation;
+    PROXY_OWNER = proxyOwner;
   }
 
  /**
   * @dev Fallback function 
   */
   fallback() external payable {
-    _delegate(_implementation);
+    _delegate(IMPLEMENTATION);
   }
 
   /**
