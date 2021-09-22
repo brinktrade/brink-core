@@ -35,9 +35,13 @@ contract Account is ProxyGettable, EIP712SignerRecovery, EIP1271Validator {
     require(proxyOwner() == msg.sender, "NOT_OWNER");
     assembly {
       let result := call(gas(), to, value, add(data, 0x20), mload(data), 0, 0)
-      if eq(result, 0) {
-        returndatacopy(0, 0, returndatasize())
+      returndatacopy(0, 0, returndatasize())
+      switch result
+      case 0 {
         revert(0, returndatasize())
+      }
+      default {
+        return(0, returndatasize())
       }
     }
   }
@@ -49,9 +53,13 @@ contract Account is ProxyGettable, EIP712SignerRecovery, EIP1271Validator {
     require(proxyOwner() == msg.sender, "NOT_OWNER");
     assembly {
       let result := delegatecall(gas(), to, add(data, 0x20), mload(data), 0, 0)
-      if eq(result, 0) {
-        returndatacopy(0, 0, returndatasize())
+      returndatacopy(0, 0, returndatasize())
+      switch result
+      case 0 {
         revert(0, returndatasize())
+      }
+      default {
+        return(0, returndatasize())
       }
     }
   }
@@ -78,9 +86,13 @@ contract Account is ProxyGettable, EIP712SignerRecovery, EIP1271Validator {
 
     assembly {
       let result := delegatecall(gas(), to, add(callData, 0x20), mload(callData), 0, 0)
-      if eq(result, 0) {
-        returndatacopy(0, 0, returndatasize())
+      returndatacopy(0, 0, returndatasize())
+      switch result
+      case 0 {
         revert(0, returndatasize())
+      }
+      default {
+        return(0, returndatasize())
       }
     }
   }
@@ -107,9 +119,13 @@ contract Account is ProxyGettable, EIP712SignerRecovery, EIP1271Validator {
 
     assembly {
       let result := delegatecall(gas(), to, add(callData, 0x20), mload(callData), 0, 0)
-      if eq(result, 0) {
-        returndatacopy(0, 0, returndatasize())
+      returndatacopy(0, 0, returndatasize())
+      switch result
+      case 0 {
         revert(0, returndatasize())
+      }
+      default {
+        return(0, returndatasize())
       }
     }
   }
