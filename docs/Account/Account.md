@@ -9,7 +9,7 @@ Deployed once and used by many Proxy contracts as the implementation contract
 
 
 
-Constructor sets CHAIN_ID immutable constant
+Constructor sets immutable constants
 
 ### `storageLoad(bytes32 ptr) → bytes32 data` (external)
 

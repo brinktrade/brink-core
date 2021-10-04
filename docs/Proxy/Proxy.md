@@ -35,6 +35,8 @@ if the implementation call reverts.
 
 
 
-
+The proxy account contract must be able to receive ether. 
+Contracts that receive Ether directly but do not define a receive Ether function 
+or a payable fallback function throw an exception, sending back the Ether.
 
 
