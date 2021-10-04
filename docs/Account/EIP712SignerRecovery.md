@@ -11,7 +11,7 @@ https://github.com/ethereum/EIPs/pull/712
 
 
 
-### `_recoverSigner(bytes32 dataHash, bytes signature) → address signer` (internal)
+### `_recoverSigner(bytes32 dataHash, bytes signature) → address` (internal)
 
 
 
