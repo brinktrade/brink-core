@@ -17,7 +17,7 @@ contract EIP712SignerRecovery {
   /// @dev Recovers the signer address for an EIP-712 signed message
   /// @param dataHash Hash of the data included in the message
   /// @param signature An EIP-712 signature
-  function _recoverSigner(bytes32 dataHash, bytes memory signature) internal view returns (address) {
+  function _recoverSigner(bytes32 dataHash, bytes calldata signature) internal view returns (address) {
     // generate the hash for the signed message
     bytes32 messageHash = keccak256(abi.encodePacked(
       "\x19\x01",

@@ -16,7 +16,7 @@ contract EIP1271Validator {
    * @param hash Hash of the data to be validated
    * @param signature Signature byte array associated with hash
    */ 
-  function _isValidSignature(address signer, bytes32 hash, bytes memory signature) internal view returns (bool) {
+  function _isValidSignature(address signer, bytes32 hash, bytes calldata signature) internal view returns (bool) {
     return IERC1271(signer).isValidSignature(hash, signature) == MAGICVALUE;
   }
 }

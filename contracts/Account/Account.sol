@@ -60,6 +60,7 @@ contract Account is ProxyGettable, EIP712SignerRecovery, EIP1271Validator {
     if (proxyOwner() != msg.sender) {
       revert NotOwner(msg.sender);
     }
+
     assembly {
       let result := call(gas(), to, value, add(data, 0x20), mload(data), 0, 0)
       returndatacopy(0, 0, returndatasize())
@@ -80,6 +81,7 @@ contract Account is ProxyGettable, EIP712SignerRecovery, EIP1271Validator {
     if (proxyOwner() != msg.sender) {
       revert NotOwner(msg.sender);
     }
+
     assembly {
       let result := delegatecall(gas(), to, add(data, 0x20), mload(data), 0, 0)
       returndatacopy(0, 0, returndatasize())
@@ -103,7 +105,7 @@ contract Account is ProxyGettable, EIP712SignerRecovery, EIP1271Validator {
   /// `callData`. If the proxyOwner signs a delegatecall to a malicious contract, this could result in total loss of
   /// their account.
   function metaDelegateCall(
-    address to, bytes memory data, bytes memory signature, bytes memory unsignedData
+    address to, bytes calldata data, bytes calldata signature, bytes calldata unsignedData
   ) external onlyDelegateCallable {
     address signer = _recoverSigner(
       keccak256(abi.encode(META_DELEGATE_CALL_TYPEHASH, to, keccak256(data))),
@@ -138,7 +140,7 @@ contract Account is ProxyGettable, EIP712SignerRecovery, EIP1271Validator {
   /// `callData`. If the proxyOwner contract validates a delegatecall to a malicious contract, this could result in
   /// total loss of the account.
   function metaDelegateCall_EIP1271(
-    address to, bytes memory data, bytes memory signature, bytes memory unsignedData
+    address to, bytes calldata data, bytes calldata signature, bytes calldata unsignedData
   ) external onlyDelegateCallable {
     bytes32 hash = keccak256(abi.encode(META_DELEGATE_CALL_EIP1271_TYPEHASH, to, keccak256(data)));
     if(!_isValidSignature(proxyOwner(), hash, signature)) {
