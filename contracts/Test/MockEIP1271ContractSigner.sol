@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity ^0.7.6;
+pragma solidity =0.8.10;
+pragma abicoder v1;
 
 /// similar to https://github.com/gnosis/safe-contracts/blob/main/contracts/base/FallbackManager.sol to make sure the
 /// Account contract's EIP1271 implementation will work with a GnosisSafe
