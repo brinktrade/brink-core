@@ -1,1 +1,1 @@
-exports['DeployAndExecute deploy account and delegate call in one tx gas cost 1'] = 140823
+exports['DeployAndExecute deploy account and delegate call in one tx gas cost 1'] = 140317
