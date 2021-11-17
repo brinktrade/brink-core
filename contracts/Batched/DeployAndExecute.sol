@@ -21,7 +21,7 @@ contract DeployAndExecute {
   * @dev Deploys a contract with SingletonFactory (https://eips.ethereum.org/EIPS/eip-2470)
   * and executes a call on the newly created contract
   */
-  function deployAndExecute(bytes memory initCode, bytes32 salt, bytes memory execData) external {
+  function deployAndExecute(bytes calldata initCode, bytes32 salt, bytes memory execData) external {
     
     // Deploy contract with SingletonFactory
     address createdContract = singletonFactory.deploy(initCode, salt);
