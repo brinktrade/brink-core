@@ -7,7 +7,8 @@ import "./EIP712SignerRecovery.sol";
 import "./EIP1271Validator.sol";
 
 /// @title Brink account core
-/// @notice Deployed once and used by many Proxy contracts as the implementation contract
+/// @notice Deployed once and used by many Proxy contracts as the implementation contract. External functions in this
+/// contract are intended to be called only by `delegatecall` from other contracts.
 contract Account is ProxyGettable, EIP712SignerRecovery, EIP1271Validator {
   /// @dev Revert if signer of a transaction or EIP712 message signer is not the proxy owner
   /// @param signer The address that is not the owner
@@ -18,11 +19,25 @@ contract Account is ProxyGettable, EIP712SignerRecovery, EIP1271Validator {
   /// @param signature Signature byte array associated with hash
   error InvalidSignature(bytes32 hash, bytes signature);
 
+  /// @dev Revert if the Account.sol implementation contract is called directly
+  error NotDelegateCall();
+
   /// @dev Typehash for signed metaDelegateCall() messages
   bytes32 internal immutable META_DELEGATE_CALL_TYPEHASH;
 
   /// @dev Typehash for signed metaDelegateCall_EIP1271() messages
   bytes32 internal immutable META_DELEGATE_CALL_EIP1271_TYPEHASH;
+
+  /// @dev Deployment address of the implementation Account.sol contract. Used to enforce onlyDelegateCallable.
+  address internal immutable deploymentAddress = address(this);
+
+  /// @dev Used by external functions to revert if they are called directly on the implementation Account.sol contract
+  modifier onlyDelegateCallable() {
+    if (address(this) == deploymentAddress) {
+      revert NotDelegateCall();
+    }
+    _;
+  }
 
   /// @dev Constructor sets immutable constants
   constructor(uint256 chainId_) EIP712SignerRecovery(chainId_) { 
@@ -41,7 +56,7 @@ contract Account is ProxyGettable, EIP712SignerRecovery, EIP1271Validator {
   /// @param value Amount of wei to send with the call
   /// @param to Address of the external contract to call
   /// @param data Call data to execute
-  function externalCall(uint256 value, address to, bytes memory data) external {
+  function externalCall(uint256 value, address to, bytes memory data) external onlyDelegateCallable {
     if (proxyOwner() != msg.sender) {
       revert NotOwner(msg.sender);
     }
@@ -61,7 +76,7 @@ contract Account is ProxyGettable, EIP712SignerRecovery, EIP1271Validator {
   /// @dev Makes a delegatecall to an external contract
   /// @param to Address of the external contract to delegatecall
   /// @param data Call data to execute
-  function delegateCall(address to, bytes memory data) external {
+  function delegateCall(address to, bytes memory data) external onlyDelegateCallable {
     if (proxyOwner() != msg.sender) {
       revert NotOwner(msg.sender);
     }
@@ -89,7 +104,7 @@ contract Account is ProxyGettable, EIP712SignerRecovery, EIP1271Validator {
   /// their account.
   function metaDelegateCall(
     address to, bytes memory data, bytes memory signature, bytes memory unsignedData
-  ) external {
+  ) external onlyDelegateCallable {
     address signer = _recoverSigner(
       keccak256(abi.encode(META_DELEGATE_CALL_TYPEHASH, to, keccak256(data))),
       signature
@@ -124,7 +139,7 @@ contract Account is ProxyGettable, EIP712SignerRecovery, EIP1271Validator {
   /// total loss of the account.
   function metaDelegateCall_EIP1271(
     address to, bytes memory data, bytes memory signature, bytes memory unsignedData
-  ) external {
+  ) external onlyDelegateCallable {
     bytes32 hash = keccak256(abi.encode(META_DELEGATE_CALL_EIP1271_TYPEHASH, to, keccak256(data)));
     if(!_isValidSignature(proxyOwner(), hash, signature)) {
       revert InvalidSignature(hash, signature);

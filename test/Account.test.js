@@ -20,6 +20,10 @@ const {
 // keccak256("MetaDelegateCall_EIP1271(address to,bytes data)")
 const META_DELEGATE_CALL_EIP1271_TYPEHASH = '0x1d3b50d88adeb95016e86033ab418b64b7ecd66b70783b0dca7b0afc8bfb8a1e'
 
+const MOCK_SIG_1 = '0x27b6fac0bcfbb0ee28787f9aa951078c4f121914904a2b34ddf063bf77ed6e28719c8d19fd14f24f24555869cbae597390827a9264abbf639eb3662ef734fc801c'
+
+const MOCK_SIG_2 = '0x27b6fac0bcfbb0ee28787f9aa951078c4f121914904a2b34ddf063bf77ed6e28719c8d19ed14f24f24555869cbae597390827a9264abbf639eb3662ef734fc801c'
+
 describe('Account', function () {
   beforeEach(async function () {
     const { defaultAccount, metaAccountOwner } = await getSigners()
@@ -57,7 +61,8 @@ describe('Account', function () {
 
   describe('externalCall()', async function() {
     beforeEach(async function () {
-      const { metaAccount } = await setupMetaAccount()
+      const { metaAccount, account } = await setupMetaAccount()
+      this.implementationAccount = account
       this.metaAccount = metaAccount
 
       const { tokenA } = await deployTestTokens()
@@ -106,6 +111,12 @@ describe('Account', function () {
       )).to.be.revertedWith('ERC20: transfer amount exceeds balance')
     })
 
+    it('when called directly on Account.sol implementation, should revert with \'NotDelegateCall()\'', async function () {
+      await expect(
+        this.implementationAccount.externalCall(0, this.emptyCallAddress, this.emptyCallData)
+      ).to.be.revertedWith('NotDelegateCall()')
+    })
+
     it('gas cost', async function () {
       await snapshotGas(this.metaAccount.connect(this.metaAccountOwner).externalCall(0, this.emptyCallAddress, this.emptyCallData))
     })
@@ -113,7 +124,8 @@ describe('Account', function () {
 
   describe('delegateCall()', async function() {
     beforeEach(async function () {
-      const { metaAccount } = await setupMetaAccount()
+      const { metaAccount, account } = await setupMetaAccount()
+      this.implementationAccount = account
       this.metaAccount = metaAccount
 
       const TestAccountCalls = await ethers.getContractFactory('TestAccountCalls');
@@ -149,6 +161,12 @@ describe('Account', function () {
       )).to.be.revertedWith('TestAccountCalls: reverted')
     })
 
+    it('when called directly on Account.sol implementation, should revert with \'NotDelegateCall()\'', async function () {
+      await expect(
+        this.implementationAccount.delegateCall(this.emptyCallAddress, this.emptyCallData)
+      ).to.be.revertedWith('NotDelegateCall()')
+    })
+
     it('gas cost', async function () {
       await snapshotGas(this.metaAccount.connect(this.metaAccountOwner).delegateCall(this.emptyCallAddress, this.emptyCallData))
     })
@@ -178,7 +196,8 @@ describe('Account', function () {
 
   describe('metaDelegateCall()', function () {
     beforeEach(async function () {
-      const { metaAccount } = await setupMetaAccount()
+      const { metaAccount, account } = await setupMetaAccount()
+      this.implementationAccount = account
       this.metaAccount = metaAccount
 
       this.mockUint = BN(12345)
@@ -245,6 +264,14 @@ describe('Account', function () {
       })).to.be.revertedWith('TestAccountCalls: reverted')
     })
 
+    it('when called directly on Account.sol implementation, should revert with \'NotDelegateCall()\'', async function () {
+      await expect(
+        this.implementationAccount.metaDelegateCall(
+          this.emptyCallAddress, this.emptyCallData, MOCK_SIG_1, '0x'
+        )
+      ).to.be.revertedWith('NotDelegateCall()')
+    })
+
     it('gas cost', async function () {
       const { promise } = await metaTxPromise({
         contract: this.metaAccount,
@@ -262,7 +289,8 @@ describe('Account', function () {
 
   describe('metaDelegateCall_EIP1271()', function () {
     beforeEach(async function () {
-      const { contractOwnedAccount, proxyOwner } = await setupContractOwnedAccount()
+      const { contractOwnedAccount, proxyOwner, account } = await setupContractOwnedAccount()
+      this.implementationAccount = account
       this.contractOwnedAccount = contractOwnedAccount
       this.proxyOwner = proxyOwner
 
@@ -270,8 +298,8 @@ describe('Account', function () {
       this.mockUint2 = BN(6789)
 
       // these are just random hex data
-      this.validMockSignature = '0x6578c0ff9e2bebf086f8048d77e4bde3d6f7af7910b6ec0ba6b6b3308155a36ce1ca8f5f0ecacd678668b751c1737040c0b9d9d106cd5564e35c12daa0a891fd06'
-      this.invalidMockSignature = '0x0283e7dd0f00ba5fdf9a44b954777d45015b971d85288932afac977b33a742061017df511a0041bacbd255be4f82f16f2d61b629269dcfbe41557a132c5dcd4bdf'
+      this.validMockSignature = MOCK_SIG_1
+      this.invalidMockSignature = MOCK_SIG_2
 
       this.validCallData = encodeFunctionCall(
         'testEvent',
@@ -319,6 +347,14 @@ describe('Account', function () {
         await expect(promise).to.be.revertedWith(`InvalidSignature("${hash}", "${this.invalidMockSignature}")`);
       }
     )
+
+    it('when called directly on Account.sol implementation, should revert with \'NotDelegateCall()\'', async function () {
+      await expect(
+        this.implementationAccount.metaDelegateCall_EIP1271(
+          this.testAccountCalls.address, this.validCallData, this.validMockSignature, '0x'
+        )
+      ).to.be.revertedWith('NotDelegateCall()')
+    })
 
     it('gas cost', async function () {
       const promise = this.contractOwnedAccount.metaDelegateCall_EIP1271(
