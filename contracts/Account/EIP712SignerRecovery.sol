@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity ^0.7.6;
+pragma solidity =0.8.10;
+pragma abicoder v1;
 
-import "@openzeppelin/contracts/cryptography/ECDSA.sol";
+import "./ECDSA.sol";
 
 /// @title Provides signer address recovery for EIP-712 signed messages
 /// @notice https://github.com/ethereum/EIPs/pull/712
