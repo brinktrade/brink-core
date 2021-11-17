@@ -2,7 +2,6 @@
   "name": "@brinkninja/core",
   "version": "1.0.0-rc.0",
   "dependencies": {
-    "@openzeppelin/contracts": "4.3.3",
     "require-directory": "^2.1.1"
   },
   "scripts": {
