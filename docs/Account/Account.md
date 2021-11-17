@@ -1,6 +1,7 @@
 ## `Account`
 
-Deployed once and used by many Proxy contracts as the implementation contract
+Deployed once and used by many Proxy contracts as the implementation contract. External functions in this
+contract are intended to be called only by `delegatecall` from other contracts.
 
 
 

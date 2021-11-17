@@ -7,7 +7,8 @@ import "./EIP712SignerRecovery.sol";
 import "./EIP1271Validator.sol";
 
 /// @title Brink account core
-/// @notice Deployed once and used by many Proxy contracts as the implementation contract
+/// @notice Deployed once and used by many Proxy contracts as the implementation contract. External functions in this
+/// contract are intended to be called only by `delegatecall` from other contracts.
 contract Account is ProxyGettable, EIP712SignerRecovery, EIP1271Validator {
   /// @dev Revert if signer of a transaction or EIP712 message signer is not the proxy owner
   /// @param signer The address that is not the owner
