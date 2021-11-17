@@ -18,9 +18,8 @@ describe('Proxy', function () {
 
     this.metaAccountImpl = await this.Account.deploy(chainId)
 
-    const { singletonFactory, singletonFactoryCaller } = await setupDeployers()
+    const { singletonFactory } = await setupDeployers()
     this.singletonFactory = singletonFactory
-    this.singletonFactoryCaller = singletonFactoryCaller
     
     const salt = ethers.utils.formatBytes32String('some.salt')
 
@@ -37,7 +36,7 @@ describe('Proxy', function () {
     this.account = await this.Account.attach(this.accountAddress)
     this.proxy = await this.Proxy.attach(this.accountAddress)
 
-    this.deployAccountPromise = singletonFactoryCaller.deploy(this.accountCode, salt)
+    this.deployAccountPromise = singletonFactory.deploy(this.accountCode, salt)
   })
 
   describe('when proxy is deployed', function () {
