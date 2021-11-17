@@ -25,7 +25,8 @@ module.exports = {
         // and we want all generated code to be deterministic
         // https://docs.soliditylang.org/en/v0.8.10/metadata.html
         bytecodeHash: 'none'
-      }
+      },
+      viaIR: true
     }
   }
 }
