@@ -19,6 +19,11 @@ describe('DeployAndExecute', function () {
     this.Account = await ethers.getContractFactory('Account')
     this.testAccountCalls = await ethers.getContractFactory('TestAccountCalls')
 
+    const TestEmptyCall = await ethers.getContractFactory('TestEmptyCall')
+    this.testEmptyCall = await TestEmptyCall.deploy()
+    this.emptyCallAddress = this.testEmptyCall.address
+    this.emptyCallData = encodeFunctionCall('testEmpty', [], [])
+
     this.metaAccountImpl = await this.Account.deploy(chainId)
     this.salt = ethers.utils.formatBytes32String('some.salt')
     
@@ -75,6 +80,20 @@ describe('DeployAndExecute', function () {
         ...params, signature, '0x'
       ])).data
 
+      const emptyCallParams = [this.emptyCallAddress, this.emptyCallData]
+
+      const { signature: emptyCallSignature } = await signMetaTx({
+        contract: { address: this.accountAddress },
+        method: 'metaDelegateCall',
+        signer: this.proxyOwner,
+        params: emptyCallParams
+      })
+
+      // data for the empty test call
+      this.emptyExecData = (await this.metaAccountImpl.connect(this.proxyOwner).populateTransaction.metaDelegateCall.apply(this, [
+        ...emptyCallParams, emptyCallSignature, '0x'
+      ])).data
+
       // send ETH to undeployed account address
       await this.ethStoreAccount.sendTransaction({
         to: this.accountAddress,
@@ -96,7 +115,7 @@ describe('DeployAndExecute', function () {
     })
 
     it('gas cost', async function () {
-      await snapshotGas(this.deployAndExecute.connect(this.proxyOwner).deployAndExecute(this.accountCode, this.salt, this.execData))
+      await snapshotGas(this.deployAndExecute.connect(this.proxyOwner).deployAndExecute(this.accountCode, this.salt, this.emptyExecData))
     })
   })
 })
