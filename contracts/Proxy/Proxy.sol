@@ -23,18 +23,12 @@ contract Proxy is ProxyStorage {
   }
 
  /**
-  * @dev Fallback function 
+  * @dev Fallback function performs a delegatecall to the implementation contract.
+  * This function will return whatever the implementation call returns, or revert
+  * if the implementation call reverts.
   */
   fallback() external payable {
-    _delegate(_implementation);
-  }
-
-  /**
-   * @dev performs a delegatecall to the implementation contract.
-   * This function will return whatever the implementation call returns, or revert
-   * if the implementation call reverts.
-   */
-  function _delegate(address impl) internal {
+    address impl = _implementation;
     assembly {
       calldatacopy(0, 0, calldatasize())
       let result := delegatecall(gas(), impl, 0, calldatasize(), 0, 0)

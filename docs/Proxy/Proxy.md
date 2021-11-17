@@ -21,13 +21,7 @@ The constructor sets the `implementation` contract address and the initial `prox
 
 
 
-Fallback function
-
-### `_delegate(address impl)` (internal)
-
-
-
-performs a delegatecall to the implementation contract.
+Fallback function performs a delegatecall to the implementation contract.
 This function will return whatever the implementation call returns, or revert
 if the implementation call reverts.
 
