@@ -1,9 +1,6 @@
 {
   "name": "@brinkninja/core",
   "version": "1.0.0-rc.0",
-  "dependencies": {
-    "require-directory": "^2.1.1"
-  },
   "scripts": {
     "compile": "hardhat compile",
     "test": "hardhat test",
@@ -20,6 +17,7 @@
     "ethereum-waffle": "^3.4.0",
     "hardhat": "^2.1.2",
     "moment": "^2.29.1",
+    "require-directory": "^2.1.1",
     "snap-shot-it": "^7.9.6",
     "solc-0.8.10": "npm:solc@0.8.10",
     "solidity-docgen": "^0.5.13"
