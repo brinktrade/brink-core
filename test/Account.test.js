@@ -29,6 +29,12 @@ describe('Account', function () {
 
     const TestAccountCalls = await ethers.getContractFactory('TestAccountCalls')
     this.testAccountCalls = await TestAccountCalls.deploy()
+
+
+    const TestEmptyCall = await ethers.getContractFactory('TestEmptyCall')
+    this.testEmptyCall = await TestEmptyCall.deploy()
+    this.emptyCallAddress = this.testEmptyCall.address
+    this.emptyCallData = encodeFunctionCall('testEmpty', [], [])
   })
 
   describe('sending ETH to account address', function () {
@@ -101,7 +107,7 @@ describe('Account', function () {
     })
 
     it('gas cost', async function () {
-      await snapshotGas(this.metaAccount.connect(this.metaAccountOwner).externalCall(0, this.tokenA.address, this.tknTransferCall))
+      await snapshotGas(this.metaAccount.connect(this.metaAccountOwner).externalCall(0, this.emptyCallAddress, this.emptyCallData))
     })
   })
 
@@ -144,7 +150,7 @@ describe('Account', function () {
     })
 
     it('gas cost', async function () {
-      await snapshotGas(this.metaAccount.connect(this.metaAccountOwner).delegateCall(this.testAccountCalls.address, this.testCall))
+      await snapshotGas(this.metaAccount.connect(this.metaAccountOwner).delegateCall(this.emptyCallAddress, this.emptyCallData))
     })
   })
 
@@ -239,30 +245,14 @@ describe('Account', function () {
       })).to.be.revertedWith('TestAccountCalls: reverted')
     })
 
-    it('gas cost with unsigned data', async function () {
-      const { signedData, unsignedData } = splitCallData(encodeFunctionCall(
-        'testEvent',
-        ['uint256', 'int24', 'address'],
-        [ this.mockUint.toString(), this.mockInt, this.mockAddress ]
-      ), 1)
-      const { promise } = await metaTxPromise({
-        contract: this.metaAccount,
-        method: 'metaDelegateCall',
-        signer: this.metaAccountOwner,
-        params: [ this.testAccountCalls.address, signedData ],
-        unsignedData
-      })
-      await snapshotGas(promise)
-    })
-
-    it('gas cost with empty unsigned data', async function () {
+    it('gas cost', async function () {
       const { promise } = await metaTxPromise({
         contract: this.metaAccount,
         method: 'metaDelegateCall',
         signer: this.metaAccountOwner,
         params: [
-          this.testAccountCalls.address,
-          encodeFunctionCall('testEvent', ['uint'], [this.mockUint.toString()])
+          this.emptyCallAddress,
+          this.emptyCallData
         ],
         unsignedData: '0x'
       })
