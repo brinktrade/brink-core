@@ -2,7 +2,7 @@ const { ethers } = require('hardhat')
 const { soliditySha3 } = require('web3-utils')
 const { expect } = require('chai')
 const brinkUtils = require('@brinkninja/utils')
-const { BN, encodeFunctionCall, splitCallData } = brinkUtils
+const { BN, encodeFunctionCall, splitCallData, encodedParams } = brinkUtils
 const { ZERO_ADDRESS, BN18 } = brinkUtils.constants
 const {
   deployTestTokens,
@@ -77,10 +77,10 @@ describe('Account', function () {
       expect(await this.tokenA.balanceOf(this.transferRecipientAddress)).to.equal(this.tknAmt)
     })
 
-    it('call from non-owner should revert with \'NOT_OWNER\'', async function() {
+    it('call from non-owner should revert with \'NotOwner("<msg.sender>")\'', async function() {
       await expect(
         this.metaAccount.externalCall(0, ZERO_ADDRESS, this.tknTransferCall)
-      ).to.be.revertedWith('NOT_OWNER');
+      ).to.be.revertedWith(`NotOwner("${this.defaultAccount.address}")`);
     })
 
     it('call from account owner with value and 0x data should send ETH', async function() {
@@ -134,11 +134,11 @@ describe('Account', function () {
                 .withArgs(this.mockUint, this.mockInt, this.mockAddress)
     })
 
-    it('call from non-owner should revert with \'NOT_OWNER\'', async function() {
+    it('call from non-owner should revert with \'NotOwner("<msg.sender>")\'', async function() {
       const { defaultAccount } = await getSigners()
       await expect(
         this.metaAccount.connect(defaultAccount).delegateCall(this.testAccountCalls.address, this.testCall)
-      ).to.be.revertedWith('NOT_OWNER');
+      ).to.be.revertedWith(`NotOwner("${defaultAccount.address}")`);
     })
 
     it('when call reverts, delegateCall should revert', async function () {
@@ -217,7 +217,7 @@ describe('Account', function () {
       await expect(promise).to.emit(this.metaAccount, 'MockParamEvent').withArgs(this.mockUint)
     })
 
-    it('when signer is not proxy owner, should revert with NOT_OWNER', async function () {
+    it('when signer is not proxy owner, should revert with NotOwner("<signer>")', async function () {
       const { signedData, unsignedData } = splitCallData(encodeFunctionCall(
         'testEvent',
         ['uint256', 'int24', 'address'],
@@ -229,7 +229,7 @@ describe('Account', function () {
         signer: this.defaultAccount,
         params: [ this.testAccountCalls.address, signedData ],
         unsignedData
-      })).to.be.revertedWith('NOT_OWNER')
+      })).to.be.revertedWith(`NotOwner("${this.defaultAccount.address}")`)
     })
 
     it('when call reverts, metaDelegateCall should revert', async function () {
@@ -304,11 +304,19 @@ describe('Account', function () {
       }
     )
 
-    it('when proxyOwner validation check for the call fails, should revert with \'INVALID_SIGNATURE\'', async function () {
+    it('when proxyOwner validation check for the call fails, should revert with \'InvalidSignature("<hash>", "<signature>")\'', async function () {
         const promise = this.contractOwnedAccount.metaDelegateCall_EIP1271(
           this.testAccountCalls.address, this.invalidCallData, this.invalidMockSignature, '0x'
         )
-        await expect(promise).to.be.revertedWith('INVALID_SIGNATURE');
+
+        // get the hash that metaDelegateCall_EIP1271 computes
+        const dataHash = soliditySha3({ t: 'bytes', v: this.invalidCallData })
+        const paramsData = encodedParams(
+          ['bytes32', 'address', 'bytes32'],
+          [META_DELEGATE_CALL_EIP1271_TYPEHASH, this.testAccountCalls.address, dataHash]
+        )
+        const hash = soliditySha3({ t: 'bytes', v: paramsData })
+        await expect(promise).to.be.revertedWith(`InvalidSignature("${hash}", "${this.invalidMockSignature}")`);
       }
     )
 
