@@ -21,7 +21,7 @@ contract DeployAndExecute {
   * @dev Deploys a contract with SingletonFactory (https://eips.ethereum.org/EIPS/eip-2470)
   * and executes a call on the newly created contract
   */
-  function deployAndExecute(bytes calldata initCode, bytes32 salt, bytes memory execData) external {
+  function deployAndExecute(bytes calldata initCode, bytes32 salt, bytes memory execData) external payable {
     
     // Deploy contract with SingletonFactory
     address createdContract = singletonFactory.deploy(initCode, salt);
@@ -31,7 +31,7 @@ contract DeployAndExecute {
 
     // Execute a call (with execData) on the newly deployed contract
     assembly {
-      let result := call(gas(), createdContract, 0, add(execData, 0x20), mload(execData), 0, 0)
+      let result := call(gas(), createdContract, callvalue(), add(execData, 0x20), mload(execData), 0, 0)
       returndatacopy(0, 0, returndatasize())
       switch result
       case 0 {

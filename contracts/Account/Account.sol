@@ -56,7 +56,7 @@ contract Account is ProxyGettable, EIP712SignerRecovery, EIP1271Validator {
   /// @param value Amount of wei to send with the call
   /// @param to Address of the external contract to call
   /// @param data Call data to execute
-  function externalCall(uint256 value, address to, bytes memory data) external onlyDelegateCallable {
+  function externalCall(uint256 value, address to, bytes memory data) external payable onlyDelegateCallable {
     if (proxyOwner() != msg.sender) {
       revert NotOwner(msg.sender);
     }
@@ -77,7 +77,7 @@ contract Account is ProxyGettable, EIP712SignerRecovery, EIP1271Validator {
   /// @dev Makes a delegatecall to an external contract
   /// @param to Address of the external contract to delegatecall
   /// @param data Call data to execute
-  function delegateCall(address to, bytes memory data) external onlyDelegateCallable {
+  function delegateCall(address to, bytes memory data) external payable onlyDelegateCallable {
     if (proxyOwner() != msg.sender) {
       revert NotOwner(msg.sender);
     }
@@ -106,7 +106,7 @@ contract Account is ProxyGettable, EIP712SignerRecovery, EIP1271Validator {
   /// their account.
   function metaDelegateCall(
     address to, bytes calldata data, bytes calldata signature, bytes calldata unsignedData
-  ) external onlyDelegateCallable {
+  ) external payable onlyDelegateCallable {
     address signer = _recoverSigner(
       keccak256(abi.encode(META_DELEGATE_CALL_TYPEHASH, to, keccak256(data))),
       signature
@@ -141,7 +141,7 @@ contract Account is ProxyGettable, EIP712SignerRecovery, EIP1271Validator {
   /// total loss of the account.
   function metaDelegateCall_EIP1271(
     address to, bytes calldata data, bytes calldata signature, bytes calldata unsignedData
-  ) external onlyDelegateCallable {
+  ) external payable onlyDelegateCallable {
     bytes32 hash = keccak256(abi.encode(META_DELEGATE_CALL_EIP1271_TYPEHASH, to, keccak256(data)));
     if(!_isValidSignature(proxyOwner(), hash, signature)) {
       revert InvalidSignature(hash, signature);
