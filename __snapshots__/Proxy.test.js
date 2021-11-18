@@ -1,1 +1,1 @@
-exports['Proxy when proxy is deployed gas cost 1'] = 119419
+exports['Proxy when proxy is deployed gas cost 1'] = 116344

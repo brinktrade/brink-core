@@ -1,12 +1,15 @@
-const setupDeployers = async () => {
+const setupDeployers = async (accountImplementation) => {
   const SingletonFactory = await ethers.getContractFactory('SingletonFactory')
   const singletonFactory = await SingletonFactory.deploy()
   await singletonFactory.deployed()
 
-  const DeployAndExecute = await ethers.getContractFactory('DeployAndExecute')
-  const deployAndExecute = await DeployAndExecute.deploy(singletonFactory.address)
+  const AccountFactory = await ethers.getContractFactory('AccountFactory')
+  const accountFactory = await AccountFactory.deploy(accountImplementation.address)
 
-  return { singletonFactory, deployAndExecute }
+  const DeployAndCall = await ethers.getContractFactory('DeployAndCall')
+  const deployAndCall = await DeployAndCall.deploy(accountFactory.address)
+
+  return { singletonFactory, accountFactory, deployAndCall }
 }
 
 module.exports = setupDeployers

@@ -18,25 +18,24 @@ describe('Proxy', function () {
 
     this.metaAccountImpl = await this.Account.deploy(chainId)
 
-    const { singletonFactory } = await setupDeployers()
-    this.singletonFactory = singletonFactory
+    const { accountFactory } = await setupDeployers(this.metaAccountImpl)
+    this.accountFactory = accountFactory
     
-    const salt = ethers.utils.formatBytes32String('some.salt')
+    this.salt = '0x841eb53dae7d7c32f92a7e2a07956fb3b9b1532166bc47aa8f091f49bcaa9ff5'
 
-    const { address, initCode } = deployData(
-      this.singletonFactory.address,
+    const { address } = deployData(
+      this.accountFactory.address,
       this.Proxy.bytecode,
       this.metaAccountImpl.address,
       this.proxyOwner.address,
-      salt
+      this.salt
     )
     this.accountAddress = address
-    this.accountCode = initCode
 
     this.account = await this.Account.attach(this.accountAddress)
     this.proxy = await this.Proxy.attach(this.accountAddress)
 
-    this.deployAccountPromise = singletonFactory.deploy(this.accountCode, salt)
+    this.deployAccountPromise = this.accountFactory.deployAccount(this.proxyOwner.address)
   })
 
   describe('when proxy is deployed', function () {
