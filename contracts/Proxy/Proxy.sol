@@ -9,9 +9,7 @@ import "./ProxyStorage.sol";
  *
  * The contract follows a standard "upgradable" pattern. It's fallback function
  * proxies all calls (via delegatecall) to the contract deployed at the
- * `implementation` address. For the initial version, `implementation` is
- * an instance of Account.sol. The `implementation` can be changed only by
- * `proxyOwner` (aka the Brink user who owns this account).
+ * ACCOUNT_IMPLEMENTATION address.
  */
 contract Proxy is ProxyStorage {
   /**
@@ -22,9 +20,9 @@ contract Proxy is ProxyStorage {
   }
 
  /**
-  * @dev Fallback function performs a delegatecall to the implementation contract.
-  * This function will return whatever the implementation call returns, or revert
-  * if the implementation call reverts.
+  * @dev Fallback function performs a delegatecall to the ACCOUNT_IMPLEMENTATION contract.
+  * This function will return whatever the ACCOUNT_IMPLEMENTATION call returns, or revert
+  * if the ACCOUNT_IMPLEMENTATION call reverts.
   */
   fallback() external payable {
     assembly {
