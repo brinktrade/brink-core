@@ -1,36 +1,38 @@
 const { ethers } = require('hardhat')
 const { expect } = require('chai')
 const brinkUtils = require('@brinkninja/utils')
-const { BN, encodeFunctionCall, deployData } = brinkUtils
+const { BN, encodeFunctionCall } = brinkUtils
 const { BN18 } = brinkUtils.constants
 const { signMetaTx, deployTestTokens } = brinkUtils.testHelpers(ethers)
-const { setupDeployers, getSigners, snapshotGas } = require('./helpers')
+const {
+  deployMasterAccount,
+  deployDeployAndCall,
+  deployAccountFactory,
+  proxyAccountFromOwner,
+  randomProxyAccount,
+  getSigners,
+  snapshotGas
+} = require('./helpers')
 
 const chainId = 1
 
 describe('DeployAndCall', function () {
   beforeEach(async function () {
-    const signers = await getSigners()
-    this.ethStoreAccount = signers.defaultAccount
-    this.proxyOwner = signers.metaAccountOwner
-    this.recipient = signers.transferRecipient
+    const { defaultAccount, transferRecipient, proxyOwner_3 } = await getSigners()
+    this.ethStoreAccount = defaultAccount
+    this.proxyOwner_3 = proxyOwner_3
+    this.recipient = transferRecipient
 
-    this.Proxy = await ethers.getContractFactory('Proxy')
-    this.Account = await ethers.getContractFactory('Account')
-    this.testAccountCalls = await ethers.getContractFactory('TestAccountCalls')
-
+    const TestAccountCalls = await ethers.getContractFactory('TestAccountCalls')
     const TestEmptyCall = await ethers.getContractFactory('TestEmptyCall')
     this.testEmptyCall = await TestEmptyCall.deploy()
     this.emptyCallAddress = this.testEmptyCall.address
     this.emptyCallData = encodeFunctionCall('testEmpty', [], [])
 
-    this.metaAccountImpl = await this.Account.deploy(chainId)
-    this.salt = '0x841eb53dae7d7c32f92a7e2a07956fb3b9b1532166bc47aa8f091f49bcaa9ff5'
-    
-    const { singletonFactory, deployAndCall, accountFactory } = await setupDeployers(this.metaAccountImpl)
-    this.singletonFactory = singletonFactory
-    this.deployAndCall = deployAndCall
-    this.accountFactory = accountFactory
+    this.masterAccount = await deployMasterAccount(chainId)
+    this.deployAndCall = await deployDeployAndCall()
+    this.accountFactory = await deployAccountFactory()
+
     const { tokenA, tokenB } = await deployTestTokens()
     this.tokenA = tokenA
     this.tokenB = tokenB
@@ -39,16 +41,11 @@ describe('DeployAndCall', function () {
     this.expiryBlock = this.latestBlock.add(BN(1000)) // 1,000 blocks from now
     this.expiredBlock = this.latestBlock.sub(BN(1)) // 1 block ago
 
-    this.testAccountCalls = await this.testAccountCalls.deploy()
+    this.testAccountCalls = await TestAccountCalls.deploy()
 
-    const { address } = deployData(
-      this.accountFactory.address,
-      this.Proxy.bytecode,
-      this.metaAccountImpl.address,
-      this.proxyOwner.address,
-      this.salt
-    )
-    this.accountAddress = address
+    const { proxyOwner, proxyAccount } = await randomProxyAccount()
+    this.proxyOwner = proxyOwner
+    this.proxyAccount = proxyAccount
 
     this.iRecipientBalance = await ethers.provider.getBalance(this.recipient.address)
   })
@@ -68,67 +65,74 @@ describe('DeployAndCall', function () {
           this.testAccountCalls.address,
           this.testTransferETHCallData
         ]
-  
-        const { signature } = await signMetaTx({
-          contract: { address: this.accountAddress },
-          method: 'metaDelegateCall',
-          signer: this.proxyOwner,
-          params
-        })
-  
-        // data for the tokenToEth swap call
-        this.callData = (await this.metaAccountImpl.connect(this.proxyOwner).populateTransaction.metaDelegateCall.apply(this, [
-          ...params, signature, '0x'
-        ])).data
-  
-        // send ETH to undeployed account address
-        await this.ethStoreAccount.sendTransaction({
-          to: this.accountAddress,
-          value: this.ethAmount
-        })
 
-        this.deployAndCallPromise = this.deployAndCall.deployAndCall(this.proxyOwner.address, this.callData)
+        this.getDeployAndCallPromiseForProxyOwner = async function (proxyOwner) {
+          const proxyAccountAddress = await proxyAccountFromOwner(proxyOwner.address)
+          const { signature } = await signMetaTx({
+            contract: { address: proxyAccountAddress },
+            method: 'metaDelegateCall',
+            signer: proxyOwner,
+            params
+          })
+    
+          // data for the tokenToEth swap call
+          const callData = (await this.masterAccount.connect(proxyOwner).populateTransaction.metaDelegateCall.apply(this, [
+            ...params, signature, '0x'
+          ])).data
+    
+          // send ETH to undeployed account address
+          await this.ethStoreAccount.sendTransaction({
+            to: proxyAccountAddress,
+            value: this.ethAmount
+          })
+  
+          return this.deployAndCall.deployAndCall(proxyOwner.address, callData)
+        }
       })
 
       it('should deploy the account', async function () {
-        await this.deployAndCallPromise
-        expect(await ethers.provider.getCode(this.accountAddress)).to.not.equal('0x')
+        const promise = await this.getDeployAndCallPromiseForProxyOwner(this.proxyOwner)
+        await promise
+        expect(await ethers.provider.getCode(this.proxyAccount.address)).to.not.equal('0x')
       })
 
       it('should delegatecall testTransferETH() to transfer ETH', async function () {
-        await this.deployAndCallPromise
+        const promise = await this.getDeployAndCallPromiseForProxyOwner(this.proxyOwner)
+        await promise
   
         // get final recipient balance
         const fRecipientBalance = await ethers.provider.getBalance(this.recipient.address)
   
-        expect(await this.tokenA.balanceOf(this.accountAddress)).to.equal(0)
-        expect(await ethers.provider.getBalance(this.accountAddress)).to.equal(0)
+        expect(await this.tokenA.balanceOf(this.proxyAccount.address)).to.equal(0)
+        expect(await ethers.provider.getBalance(this.proxyAccount.address)).to.equal(0)
         expect(fRecipientBalance.sub(this.iRecipientBalance)).to.equal(this.ethAmount)
       })
 
       it('gas cost', async function () {
-        await snapshotGas(this.deployAndCallPromise)
+        // use deterministic proxyOwner for gas cost snapshot so amount stays fixed
+        const promise = await this.getDeployAndCallPromiseForProxyOwner(this.proxyOwner_3)
+        await snapshotGas(promise)
       })
     })
 
     describe('with callData that reverts', function () {
       it('should revert with error message from the account calldata execution', async function () {
-        this.testRevertCallData = encodeFunctionCall('testRevert', ['bool'], [true])
-        const params = [ this.testAccountCalls.address, this.testRevertCallData ]
+        const testRevertCallData = encodeFunctionCall('testRevert', ['bool'], [true])
+        const params = [ this.testAccountCalls.address, testRevertCallData ]
   
         const { signature } = await signMetaTx({
-          contract: { address: this.accountAddress },
+          contract: { address: this.proxyAccount.address },
           method: 'metaDelegateCall',
           signer: this.proxyOwner,
           params
         })
   
         // data for the testRevert call
-        this.callData = (await this.metaAccountImpl.connect(this.proxyOwner).populateTransaction.metaDelegateCall.apply(this, [
+        const callData = (await this.masterAccount.connect(this.proxyOwner).populateTransaction.metaDelegateCall.apply(this, [
           ...params, signature, '0x'
         ])).data
 
-        expect(this.deployAndCall.deployAndCall(this.proxyOwner.address, this.callData))
+        expect(this.deployAndCall.deployAndCall(this.proxyOwner.address, callData))
           .to.be.revertedWith('TestAccountCalls: reverted')
       })
     })

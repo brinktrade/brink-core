@@ -15,10 +15,9 @@ import "./ProxyStorage.sol";
  */
 contract Proxy is ProxyStorage {
   /**
-  * @dev The constructor sets the `implementation` contract address and the initial `proxyOwner`
+  * @dev The constructor sets `proxyOwner`
   */
-  constructor(address implementation, address proxyOwner) {
-    _implementation = implementation;
+  constructor(address proxyOwner) {
     _owner = proxyOwner;
   }
 
@@ -28,10 +27,9 @@ contract Proxy is ProxyStorage {
   * if the implementation call reverts.
   */
   fallback() external payable {
-    address impl = _implementation;
     assembly {
       calldatacopy(0, 0, calldatasize())
-      let result := delegatecall(gas(), impl, 0, calldatasize(), 0, 0)
+      let result := delegatecall(gas(), ACCOUNT_IMPLEMENTATION, 0, calldatasize(), 0, 0)
       returndatacopy(0, 0, returndatasize())
       switch result
       case 0 { revert(0, returndatasize()) }

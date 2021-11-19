@@ -4,7 +4,7 @@ pragma abicoder v1;
 
 import "../Proxy/Proxy.sol";
 
-/// @title Brink Account Factory
+/// @title Brink account factory
 /// @notice This is a factory contract used for deployment of Brink proxy accounts
 contract AccountFactory {
   /// @dev Emit when a new Proxy account is deployed
@@ -14,19 +14,11 @@ contract AccountFactory {
   /// @dev Salt used for salted deployment of Proxy accounts
   bytes32 constant SALT = 0x841eb53dae7d7c32f92a7e2a07956fb3b9b1532166bc47aa8f091f49bcaa9ff5;
 
-  /// @dev Address of the account implementation that deployed Proxy accounts will delegatecall to
-  address immutable accountImplementation;
-
-  /// @dev Constructor sets the accountImplementation
-  constructor(address _accountImplementation) {
-    accountImplementation = _accountImplementation;
-  }
-
   /// @dev Deploys a Proxy account for the given owner
   /// @param owner Address of the Proxy account owner
   /// @return account Address of the deployed Proxy account
   function deployAccount(address owner) external returns (address account) {
-    account = address(new Proxy{salt: SALT}(accountImplementation, owner));
+    account = address(new Proxy{salt: SALT}(owner));
     emit AccountDeployed(account);
   }
 }

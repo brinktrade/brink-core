@@ -10,13 +10,6 @@ import "./ProxyStorage.sol";
  */
 contract ProxySettable is ProxyStorage {
   /**
-   * @dev Internal function to store the implementation contract address
-   */
-  function _setImplementation(address implementation) internal {
-    _implementation = implementation;
-  }
-
-  /**
    * @dev Internal function to set the proxy owner address
    */
   function _setProxyOwner(address proxyOwner) internal {

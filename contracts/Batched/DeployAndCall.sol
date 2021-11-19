@@ -7,19 +7,14 @@ import "../Account/AccountFactory.sol";
 /// @title DeployAndCall
 /// @notice This contract contains a function to batch account deploy and call into one transaction
 contract DeployAndCall {
-  /// @dev Address of the AccountFactory to use for account deployments
-  AccountFactory immutable accountFactory;
-
-  /// @dev Constructor sets an immutable accountFactory address
-  constructor(AccountFactory _accountFactory) {
-    accountFactory = _accountFactory;
-  }
+  /// @dev The AccountFactory to use for account deployments
+  AccountFactory constant ACCOUNT_FACTORY = AccountFactory(0xcA77Af03C088928501Ea27De0006B88e5f64c65a);
 
   /// @dev Deploys an account for the given owner and executes callData on the account
   /// @param owner Address of the account owner
   /// @param callData The call to execute on the account after deployment
   function deployAndCall(address owner, bytes memory callData) external payable {
-    address account = accountFactory.deployAccount(owner);
+    address account = ACCOUNT_FACTORY.deployAccount(owner);
 
     if (callData.length > 0) {
       assembly {

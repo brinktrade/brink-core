@@ -10,12 +10,15 @@ const {
   metaTxPromise
 } = brinkUtils.testHelpers(ethers)
 const {
-  setupMetaAccount,
+  deployMasterAccount,
+  setupProxyAccount,
   setupContractOwnedAccount,
   metaCallDataHash,
   getSigners,
   snapshotGas
 } = require('./helpers')
+
+const chainId = 1
 
 // keccak256("MetaDelegateCall_EIP1271(address to,bytes data)")
 const META_DELEGATE_CALL_EIP1271_TYPEHASH = '0x1d3b50d88adeb95016e86033ab418b64b7ecd66b70783b0dca7b0afc8bfb8a1e'
@@ -26,14 +29,15 @@ const MOCK_SIG_2 = '0x27b6fac0bcfbb0ee28787f9aa951078c4f121914904a2b34ddf063bf77
 
 describe('Account', function () {
   beforeEach(async function () {
-    const { defaultAccount, metaAccountOwner } = await getSigners()
+    const { defaultAccount, proxyOwner_1 } = await getSigners()
     this.defaultAccount = defaultAccount
-    this.metaAccountOwner = metaAccountOwner
+    this.proxyOwner_1 = proxyOwner_1
     this.transferRecipientAddress = '0xaff9aeda442C8D27a7F01490CA520dbdf088d1a2'
+
+    this.masterAccount = await deployMasterAccount(chainId)
 
     const TestAccountCalls = await ethers.getContractFactory('TestAccountCalls')
     this.testAccountCalls = await TestAccountCalls.deploy()
-
 
     const TestEmptyCall = await ethers.getContractFactory('TestEmptyCall')
     this.testEmptyCall = await TestEmptyCall.deploy()
@@ -41,66 +45,67 @@ describe('Account', function () {
     this.emptyCallData = encodeFunctionCall('testEmpty', [], [])
   })
 
-  describe('sending ETH to account address', function () {
+  describe('sending ETH to proxy account address', function () {
     beforeEach(async function () {
-      const { metaAccount } = await setupMetaAccount()
-      this.metaAccount = metaAccount
+      const { proxyAccount } = await setupProxyAccount()
+      this.proxyAccount = proxyAccount
 
       this.ethSendAmount = BN(3).mul(BN18)
       
       await this.defaultAccount.sendTransaction({
-        to: this.metaAccount.address,
+        to: this.proxyAccount.address,
         value: this.ethSendAmount
       })
     })
 
-    it('should succeed and increase account balance', async function () {
-      expect(await ethers.provider.getBalance(this.metaAccount.address)).to.equal(this.ethSendAmount)
+    it('should succeed and increase proxy account balance', async function () {
+      expect(await ethers.provider.getBalance(this.proxyAccount.address)).to.equal(this.ethSendAmount)
     })
   })
 
   describe('externalCall()', async function() {
     beforeEach(async function () {
-      const { metaAccount, account } = await setupMetaAccount()
+      const { proxyAccount, proxyOwner, account } = await setupProxyAccount()
       this.implementationAccount = account
-      this.metaAccount = metaAccount
+      this.proxyOwner = proxyOwner
+      this.proxyAccount = proxyAccount
 
       const { tokenA } = await deployTestTokens()
       this.tokenA = tokenA
       this.tknAmt = BN18.mul(2)
-      await this.tokenA.mint(this.metaAccount.address, this.tknAmt)
+      await this.tokenA.mint(this.proxyAccount.address, this.tknAmt)
       this.tknTransferCall = encodeFunctionCall(
         'transfer',
         ['address', 'uint'],
         [this.transferRecipientAddress, this.tknAmt.toString()]
       )
     })
-    it('call from account owner should call external contract', async function() {
+    it('call from proxy account owner should call external contract', async function() {
       // testing this with an ERC20.transfer() call
-      await this.metaAccount.connect(this.metaAccountOwner).externalCall(0, this.tokenA.address, this.tknTransferCall)
-      expect(await this.tokenA.balanceOf(this.metaAccount.address)).to.equal(0)
+      await this.proxyAccount.connect(this.proxyOwner).externalCall(0, this.tokenA.address, this.tknTransferCall)
+      expect(await this.tokenA.balanceOf(this.proxyAccount.address)).to.equal(0)
       expect(await this.tokenA.balanceOf(this.transferRecipientAddress)).to.equal(this.tknAmt)
     })
 
     it('call from non-owner should revert with \'NotOwner("<msg.sender>")\'', async function() {
       await expect(
-        this.metaAccount.externalCall(0, ZERO_ADDRESS, this.tknTransferCall)
+        this.proxyAccount.externalCall(0, ZERO_ADDRESS, this.tknTransferCall)
       ).to.be.revertedWith(`NotOwner("${this.defaultAccount.address}")`);
     })
 
-    it('call from account owner with value and 0x data should send ETH', async function() {
+    it('call from proxy account owner with value and 0x data should send ETH', async function() {
       const initalBalance = await ethers.provider.getBalance(this.transferRecipientAddress)
       await this.defaultAccount.sendTransaction({
-        to: this.metaAccount.address,
+        to: this.proxyAccount.address,
         value: 1000000
       })
-      await this.metaAccount.connect(this.metaAccountOwner).externalCall(100, this.transferRecipientAddress, '0x')
+      await this.proxyAccount.connect(this.proxyOwner).externalCall(100, this.transferRecipientAddress, '0x')
       const newBalance = await ethers.provider.getBalance(this.transferRecipientAddress)
       expect(BN(newBalance) > BN(initalBalance))
     })
 
     it('when call reverts, externalCall should revert', async function () {
-      await expect(this.metaAccount.connect(this.metaAccountOwner).externalCall(
+      await expect(this.proxyAccount.connect(this.proxyOwner).externalCall(
         0,
         this.tokenA.address,
         encodeFunctionCall(
@@ -118,15 +123,16 @@ describe('Account', function () {
     })
 
     it('gas cost', async function () {
-      await snapshotGas(this.metaAccount.connect(this.metaAccountOwner).externalCall(0, this.emptyCallAddress, this.emptyCallData))
+      await snapshotGas(this.proxyAccount.connect(this.proxyOwner).externalCall(0, this.emptyCallAddress, this.emptyCallData))
     })
   })
 
   describe('delegateCall()', async function() {
     beforeEach(async function () {
-      const { metaAccount, account } = await setupMetaAccount()
+      const { proxyAccount, proxyOwner, account } = await setupProxyAccount()
       this.implementationAccount = account
-      this.metaAccount = metaAccount
+      this.proxyOwner = proxyOwner
+      this.proxyAccount = proxyAccount
 
       const TestAccountCalls = await ethers.getContractFactory('TestAccountCalls');
       this.testAccountCalls = await TestAccountCalls.deploy()
@@ -139,22 +145,22 @@ describe('Account', function () {
         [this.mockUint, this.mockInt, this.mockAddress]
       )
     })
-    it('call from account owner should execute delegatecall on external contract', async function() {
-      const promise = this.metaAccount.connect(this.metaAccountOwner).delegateCall(this.testAccountCalls.address, this.testCall)
+    it('call from proxy account owner should execute delegatecall on external contract', async function() {
+      const promise = this.proxyAccount.connect(this.proxyOwner).delegateCall(this.testAccountCalls.address, this.testCall)
       await expect(promise)
-                .to.emit(this.metaAccount, 'MockParamsEvent')
+                .to.emit(this.proxyAccount, 'MockParamsEvent')
                 .withArgs(this.mockUint, this.mockInt, this.mockAddress)
     })
 
     it('call from non-owner should revert with \'NotOwner("<msg.sender>")\'', async function() {
       const { defaultAccount } = await getSigners()
       await expect(
-        this.metaAccount.connect(defaultAccount).delegateCall(this.testAccountCalls.address, this.testCall)
+        this.proxyAccount.connect(defaultAccount).delegateCall(this.testAccountCalls.address, this.testCall)
       ).to.be.revertedWith(`NotOwner("${defaultAccount.address}")`);
     })
 
     it('when call reverts, delegateCall should revert', async function () {
-      await expect(this.metaAccount.connect(this.metaAccountOwner).externalCall(
+      await expect(this.proxyAccount.connect(this.proxyOwner).externalCall(
         0,
         this.testAccountCalls.address,
         encodeFunctionCall('testRevert', ['bool'], [true])
@@ -168,37 +174,38 @@ describe('Account', function () {
     })
 
     it('gas cost', async function () {
-      await snapshotGas(this.metaAccount.connect(this.metaAccountOwner).delegateCall(this.emptyCallAddress, this.emptyCallData))
+      await snapshotGas(this.proxyAccount.connect(this.proxyOwner).delegateCall(this.emptyCallAddress, this.emptyCallData))
     })
   })
 
   describe('storageLoad()', function () {
-
     beforeEach(async function () {
-      const { metaAccount } = await setupMetaAccount()
-      this.metaAccount = metaAccount
+      const { proxyAccount, proxyOwner } = await setupProxyAccount()
+      this.proxyOwner = proxyOwner
+      this.proxyAccount = proxyAccount
     })
 
     it('should return the storage value at the given pointer', async function () {
       const inputVal = 123456
 
       // store the input value
-      await this.metaAccount.connect(this.metaAccountOwner).delegateCall(
+      await this.proxyAccount.connect(this.proxyOwner).delegateCall(
         this.testAccountCalls.address,
         encodeFunctionCall('testStore', ['uint'], [inputVal])
       )
 
       // read the value with storageLoad view function
-      const outputVal = await this.metaAccount.storageLoad(soliditySha3('mockUint'))
+      const outputVal = await this.proxyAccount.storageLoad(soliditySha3('mockUint'))
       expect(BN(outputVal)).to.equal(BN(inputVal))
     })
   })
 
   describe('metaDelegateCall()', function () {
     beforeEach(async function () {
-      const { metaAccount, account } = await setupMetaAccount()
+      const { proxyAccount, proxyOwner, account } = await setupProxyAccount()
       this.implementationAccount = account
-      this.metaAccount = metaAccount
+      this.proxyOwner = proxyOwner
+      this.proxyAccount = proxyAccount
 
       this.mockUint = BN(12345)
       this.mockInt = BN(-6789)
@@ -212,28 +219,28 @@ describe('Account', function () {
         [ this.mockUint.toString(), this.mockInt, this.mockAddress ]
       ), 1)
       const { promise } = await metaTxPromise({
-        contract: this.metaAccount,
+        contract: this.proxyAccount,
         method: 'metaDelegateCall',
-        signer: this.metaAccountOwner,
+        signer: this.proxyOwner,
         params: [ this.testAccountCalls.address, signedData ],
         unsignedData
       })
-      await expect(promise).to.emit(this.metaAccount, 'MockParamsEvent')
+      await expect(promise).to.emit(this.proxyAccount, 'MockParamsEvent')
         .withArgs(this.mockUint, this.mockInt, this.mockAddress)
     })
 
     it('when sent with a valid signature and call data to a function that does not expect appended unsigned data', async function () {
       const { promise } = await metaTxPromise({
-        contract: this.metaAccount,
+        contract: this.proxyAccount,
         method: 'metaDelegateCall',
-        signer: this.metaAccountOwner,
+        signer: this.proxyOwner,
         params: [
           this.testAccountCalls.address,
           encodeFunctionCall('testEvent', ['uint'], [this.mockUint.toString()])
         ],
         unsignedData: '0x'
       })
-      await expect(promise).to.emit(this.metaAccount, 'MockParamEvent').withArgs(this.mockUint)
+      await expect(promise).to.emit(this.proxyAccount, 'MockParamEvent').withArgs(this.mockUint)
     })
 
     it('when signer is not proxy owner, should revert with NotOwner("<signer>")', async function () {
@@ -243,7 +250,7 @@ describe('Account', function () {
         [ this.mockUint.toString(), this.mockInt, this.mockAddress ]
       ), 1)
       await expect(execMetaTx({
-        contract: this.metaAccount,
+        contract: this.proxyAccount,
         method: 'metaDelegateCall',
         signer: this.defaultAccount,
         params: [ this.testAccountCalls.address, signedData ],
@@ -256,9 +263,9 @@ describe('Account', function () {
         'testRevert', ['bool'], [true ]
       ), 0)
       await expect(execMetaTx({
-        contract: this.metaAccount,
+        contract: this.proxyAccount,
         method: 'metaDelegateCall',
-        signer: this.metaAccountOwner,
+        signer: this.proxyOwner,
         params: [ this.testAccountCalls.address, signedData ],
         unsignedData
       })).to.be.revertedWith('TestAccountCalls: reverted')
@@ -273,10 +280,11 @@ describe('Account', function () {
     })
 
     it('gas cost', async function () {
+      const { proxyAccount } = await setupProxyAccount(this.proxyOwner_1)
       const { promise } = await metaTxPromise({
-        contract: this.metaAccount,
+        contract: proxyAccount,
         method: 'metaDelegateCall',
-        signer: this.metaAccountOwner,
+        signer: this.proxyOwner_1,
         params: [
           this.emptyCallAddress,
           this.emptyCallData
