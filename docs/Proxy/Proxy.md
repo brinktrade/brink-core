@@ -11,11 +11,11 @@ an instance of Account.sol. The `implementation` can be changed only by
 `proxyOwner` (aka the Brink user who owns this account).
 
 
-### `constructor(address implementation, address proxyOwner)` (public)
+### `constructor(address proxyOwner)` (public)
 
 
 
-The constructor sets the `implementation` contract address and the initial `proxyOwner`
+The constructor sets `proxyOwner`
 
 ### `fallback()` (external)
 

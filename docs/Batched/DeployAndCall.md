@@ -5,12 +5,6 @@ This contract contains a function to batch account deploy and call into one tran
 
 
 
-### `constructor(contract AccountFactory _accountFactory)` (public)
-
-
-
-Constructor sets an immutable accountFactory address
-
 ### `deployAndCall(address owner, bytes callData)` (external)
 
 
