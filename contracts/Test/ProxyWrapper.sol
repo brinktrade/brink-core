@@ -9,5 +9,7 @@ contract ProxyWrapper is Proxy {
     return ACCOUNT_IMPLEMENTATION;
   }
 
-  constructor (address proxyOwner) Proxy(proxyOwner) {}
+  function proxyOwner() external pure returns (address) {
+    return OWNER;
+  }
 }

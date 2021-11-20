@@ -3,6 +3,7 @@ const { ACCOUNT_FACTORY } = require('../../constants')
 const deployMasterAccount = require('./deployMasterAccount')
 const deployAccountFactory = require('./deployAccountFactory')
 const saltedDeployAddress = require('./saltedDeployAddress')
+const proxyBytecode = require('./proxyBytecode')
 
 const chainId = 1
 
@@ -12,7 +13,9 @@ async function deployProxyAccount (ownerAddress) {
   await deployMasterAccount(chainId)
   const accountFactory = await deployAccountFactory()
 
-  const { address: proxyAddress } = saltedDeployAddress(ACCOUNT_FACTORY, Proxy.bytecode, ['address'], [ownerAddress])
+  const { address: proxyAddress } = saltedDeployAddress(
+    ACCOUNT_FACTORY, await proxyBytecode(ownerAddress), [], []
+  )
 
   if (await ethers.provider.getCode(proxyAddress) == '0x') {
     await accountFactory.deployAccount(ownerAddress)

@@ -1,14 +1,16 @@
 const { ethers } = require('hardhat')
 const { expect } = require('chai')
 const brinkUtils = require('@brinkninja/utils')
-const { BN } = brinkUtils
+const { BN, encodeFunctionCall } = brinkUtils
 const { BN18 } = brinkUtils.constants
 const { deployTestTokens } = brinkUtils.testHelpers(ethers)
+const { SINGLETON_FACTORY, ACCOUNT } = require('../constants')
 const {
   getSigners,
   randomProxyAccount,
   deployMasterAccount,
   deployAccountFactory,
+  saltedDeployAddress,
   snapshotGas
 } = require('./helpers')
 
@@ -64,6 +66,21 @@ describe('Proxy', function () {
       await this.tokenA.mint(this.defaultAccount.address, this.tokenTransferAmount)
       await this.tokenA.transfer(this.proxyAccount.address, this.tokenTransferAmount)
       expect(await this.tokenA.balanceOf(this.proxyAccount.address)).to.equal(this.tokenTransferAmount)
+    })
+  })
+
+  describe('when memory slots are overwritten', function () {
+    beforeEach(async function () {
+      const MemorySlotOverwrite = await ethers.getContractFactory('MemorySlotOverwrite')
+      const memorySlotOverwrite = await MemorySlotOverwrite.deploy()
+      await this.proxyAccount.connect(this.proxyOwner).delegateCall(
+        memorySlotOverwrite.address,
+        encodeFunctionCall('overwrite', [], [])
+      )
+    })
+
+    it('should not affect owner address', async function () {
+      expect(await this.proxyAccount.proxyOwner()).to.equal(this.proxyOwner.address)
     })
   })
 })

@@ -1,11 +1,11 @@
 exports['Account.sol deterministic address check 1'] = `
-0xb331835e919A1cfFbaAa40A68d59e0395798452C
+0x1a015312312c5508E077bAde7881F553aC44f288
 `
 
 exports['AccountFactory.sol deterministic address check 1'] = `
-0xcA77Af03C088928501Ea27De0006B88e5f64c65a
+0xe7729300D6c21795dbb72CBA2372b07cdD05bdB0
 `
 
 exports['DeployAndCall.sol deterministic address check 1'] = `
-0xc2840dB2F912c58CFc3a85F39db9A3cB50f7C78D
+0x6B6675B6841c9AA360ee9a96F4323d91DCC83068
 `

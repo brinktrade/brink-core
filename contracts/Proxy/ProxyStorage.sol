@@ -7,7 +7,8 @@ pragma abicoder v1;
  */
 contract ProxyStorage {
   /// @dev Address of the account implementation that deployed Proxy accounts will delegatecall to
-  address constant ACCOUNT_IMPLEMENTATION = 0xb331835e919A1cfFbaAa40A68d59e0395798452C;
+  address constant ACCOUNT_IMPLEMENTATION = 0x1a015312312c5508E077bAde7881F553aC44f288;
 
-  address internal _owner;
+  /// @dev Placeholder address for the proxy owner, replaced with the actual owner before deployment
+  address constant OWNER = 0xfefeFEFeFEFEFEFEFeFefefefefeFEfEfefefEfe;           
 }

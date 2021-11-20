@@ -15,10 +15,17 @@ contract AccountFactory {
   bytes32 constant SALT = 0x841eb53dae7d7c32f92a7e2a07956fb3b9b1532166bc47aa8f091f49bcaa9ff5;
 
   /// @dev Deploys a Proxy account for the given owner
-  /// @param owner Address of the Proxy account owner
   /// @return account Address of the deployed Proxy account
   function deployAccount(address owner) external returns (address account) {
-    account = address(new Proxy{salt: SALT}(owner));
+    // replace OWNER constant slot in Proxy.sol with `owner` address in initCode
+    bytes memory initCode = type(Proxy).creationCode;
+    bytes32 ownerBytes32 = bytes32(uint256(uint160(owner)) << 96);
+    for (uint8 i = 0; i < 20; i++) {
+      initCode[i+40] = ownerBytes32[i];
+    }
+    assembly {
+      account := create2(0, add(initCode, 0x20), mload(initCode), SALT)
+    }
     emit AccountDeployed(account);
   }
 }
