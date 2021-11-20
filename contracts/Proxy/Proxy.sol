@@ -6,18 +6,10 @@ import "./ProxyStorage.sol";
 
 /**
  * @dev Proxy is deployed for each unique Brink account.
- *
- * The contract follows a standard "upgradable" pattern. It's fallback function
- * proxies all calls (via delegatecall) to the contract deployed at the
+ * @notice The contract fallback function proxies will delegatecall all calls to the contract deployed at the
  * ACCOUNT_IMPLEMENTATION address.
  */
 contract Proxy is ProxyStorage {
-  /**
-  * @dev The constructor sets `proxyOwner`
-  */
-  constructor(address proxyOwner) {
-    _owner = proxyOwner;
-  }
 
  /**
   * @dev Fallback function performs a delegatecall to the ACCOUNT_IMPLEMENTATION contract.
@@ -40,5 +32,8 @@ contract Proxy is ProxyStorage {
    * Contracts that receive Ether directly but do not define a receive Ether function 
    * or a payable fallback function throw an exception, sending back the Ether. 
    */
-  receive() external payable { }
+  receive() external payable {
+    // this does nothing and costs minimal gas. It forces the compiler to include the OWNER constant in bytecode
+    assembly { mstore(mload(0x40), OWNER) }
+  }
 }

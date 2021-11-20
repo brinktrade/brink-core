@@ -17,7 +17,7 @@ describe('Account.sol', function () {
     expect(masterAccount.address, 'Deployed account address and ACCOUNT constant are different').to.equal(ACCOUNT)
 
     const ProxyWrapper = await ethers.getContractFactory('ProxyWrapper')
-    const proxyWrapper = await ProxyWrapper.deploy(ZERO_ADDRESS)
+    const proxyWrapper = await ProxyWrapper.deploy()
     expect(masterAccount.address, 'Deployed account address and Proxy ACCOUNT_IMPLEMENTATION are different').to.equal(await proxyWrapper.accountImplementation())
   })
 })
