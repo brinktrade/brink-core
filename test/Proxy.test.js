@@ -56,6 +56,14 @@ describe('Proxy', function () {
       })
       expect(await ethers.provider.getBalance(this.proxyAccount.address)).to.equal(this.ethTransferAmount)
     })
+
+    it('gas cost', async function () {
+      this.ethTransferAmount = BN(2).mul(BN18)
+      await snapshotGas(this.defaultAccount.sendTransaction({
+        to: this.proxyAccount.address,
+        value: this.ethTransferAmount
+      }))
+    })
   })
 
   describe('when Proxy account receives ERC20', function () {
