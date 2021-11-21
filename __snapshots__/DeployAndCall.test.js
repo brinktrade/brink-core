@@ -1,1 +1,1 @@
-exports['DeployAndCall deployAndCall() with callData that does not revert gas cost 1'] = 110748
+exports['DeployAndCall deployAndCall() with callData that does not revert gas cost 1'] = 103714

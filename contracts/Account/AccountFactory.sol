@@ -2,8 +2,6 @@
 pragma solidity =0.8.10;
 pragma abicoder v1;
 
-import "../Proxy/Proxy.sol";
-
 /// @title Brink account factory
 /// @notice This is a factory contract used for deployment of Brink proxy accounts
 contract AccountFactory {
@@ -15,14 +13,16 @@ contract AccountFactory {
   bytes32 constant SALT = 0x841eb53dae7d7c32f92a7e2a07956fb3b9b1532166bc47aa8f091f49bcaa9ff5;
 
   /// @dev Deploys a Proxy account for the given owner
+  /// @param owner Owner of the Proxy account
   /// @return account Address of the deployed Proxy account
   function deployAccount(address owner) external returns (address account) {
-    // replace OWNER constant slot in Proxy.sol with `owner` address in initCode
-    bytes memory initCode = type(Proxy).creationCode;
-    bytes32 ownerBytes32 = bytes32(uint256(uint160(owner)) << 96);
-    for (uint8 i = 0; i < 20; i++) {
-      initCode[i+40] = ownerBytes32[i];
-    }
+    // replace OWNER constant slot in Proxy.sol bytecode with `owner` to generate the initCode for the proxy
+    bytes memory initCode = abi.encodePacked(
+      hex'6080604052348015600f57600080fd5b5060678061001e6000396000f3fe60806040523660235773',
+      owner,
+      hex'60405152005b3660008037600080366000731a015312312c5508e077bade7881f553ac44f2885af43d6000803e8080156055573d6000f35b3d6000fdfea164736f6c634300080a000a'
+    );
+
     assembly {
       account := create2(0, add(initCode, 0x20), mload(initCode), SALT)
     }
