@@ -40,7 +40,7 @@ contract Account is ProxyGettable, EIP712SignerRecovery, EIP1271Validator {
   }
 
   /// @dev Constructor sets immutable constants
-  constructor(uint256 chainId_) EIP712SignerRecovery(chainId_) { 
+  constructor() { 
     META_DELEGATE_CALL_TYPEHASH = keccak256("MetaDelegateCall(address to,bytes data)");
     META_DELEGATE_CALL_EIP1271_TYPEHASH = keccak256("MetaDelegateCall_EIP1271(address to,bytes data)");
   }

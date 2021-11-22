@@ -4,10 +4,8 @@ const deployProxyAccount =require('./deployProxyAccount')
 const randomProxyAccount =require('./randomProxyAccount')
 const deployMasterAccount = require('./deployMasterAccount')
 
-const chainId = 1
-
 const setupProxyAccount = async (owner) => {
-  await deployMasterAccount(chainId)
+  await deployMasterAccount()
   const proxyOwner = owner || (await randomProxyAccount()).proxyOwner
   const proxy = await deployProxyAccount(proxyOwner.address)
   const canonicalAccount = await ethers.getContractAt('Account', ACCOUNT)

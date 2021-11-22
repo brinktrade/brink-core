@@ -12,7 +12,7 @@ contract are intended to be called only by `delegatecall` from other contracts.
 Used by external functions to revert if they are called directly on the implementation Account.sol contract
 
 
-### `constructor(uint256 chainId_)` (public)
+### `constructor()` (public)
 
 
 

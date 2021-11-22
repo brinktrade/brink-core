@@ -10,10 +10,10 @@
     check-more-types "2.24.0"
     lazy-ass "1.6.0"
 
-"@brinkninja/utils@^0.3.0":
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/@brinkninja/utils/-/utils-0.3.0.tgz#94a6b2a3ccfc0f9a9c4c8f1684abd0f6ecbed149"
-  integrity sha512-jAjJLCepH9KjY/n+4bWFssEfvy7ROxu11JHgSdcWZTn/k+kwgHK+NWwgJvQyqsAOUS0EBysYvIFU4uFvXrNZDQ==
+"@brinkninja/utils@^0.3.2":
+  version "0.3.2"
+  resolved "https://registry.yarnpkg.com/@brinkninja/utils/-/utils-0.3.2.tgz#8bb1de15c76028071265b42ce9361ba381cb36e9"
+  integrity sha512-UtVXFWWO+SLOj8OIGmZbuU2FMn61zpSBPNpVplsUZZOZ+BpHjAwFGtUl44L0ua684+aPx7JdNV6PWFJ6sNo4uQ==
   dependencies:
     "@ethersproject/bignumber" "^5.4.1"
     eth-sig-util "2.5.3"
