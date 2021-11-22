@@ -1,63 +1,47 @@
 const { ethers } = require('hardhat')
 const { expect } = require('chai')
 const brinkUtils = require('@brinkninja/utils')
-const { BN, deployData } = brinkUtils
+const { BN } = brinkUtils
 const { BN18 } = brinkUtils.constants
 const { deployTestTokens } = brinkUtils.testHelpers(ethers)
-const { setupDeployers, snapshotGas } = require('./helpers')
+const {
+  getSigners,
+  randomProxyAccount,
+  deployMasterAccount,
+  deployAccountFactory,
+  snapshotGas
+} = require('./helpers')
 
 const chainId = 1
 
 describe('Proxy', function () {
   beforeEach(async function () {
-    const [defaultAccount, proxyOwner] = await ethers.getSigners()
+    const { defaultAccount, proxyOwner_4 } = await getSigners()
     this.defaultAccount = defaultAccount
-    this.proxyOwner = proxyOwner
-    this.Proxy = await ethers.getContractFactory('Proxy')
-    this.Account = await ethers.getContractFactory('Account')
-
-    this.metaAccountImpl = await this.Account.deploy(chainId)
-
-    const { singletonFactory } = await setupDeployers()
-    this.singletonFactory = singletonFactory
+    this.proxyOwner_4 = proxyOwner_4
     
-    const salt = ethers.utils.formatBytes32String('some.salt')
+    await deployMasterAccount(chainId)
+    this.accountFactory = await deployAccountFactory();
 
-    const { address, initCode } = deployData(
-      this.singletonFactory.address,
-      this.Proxy.bytecode,
-      this.metaAccountImpl.address,
-      this.proxyOwner.address,
-      salt
-    )
-    this.accountAddress = address
-    this.accountCode = initCode
+    const { proxyOwner, proxyAccount } = await randomProxyAccount()
+    this.proxyOwner = proxyOwner
+    this.proxyAccount = proxyAccount
 
-    this.account = await this.Account.attach(this.accountAddress)
-    this.proxy = await this.Proxy.attach(this.accountAddress)
-
-    this.deployAccountPromise = singletonFactory.deploy(this.accountCode, salt)
+    await this.accountFactory.deployAccount(this.proxyOwner.address)
   })
 
   describe('when proxy is deployed', function () {
     it('new proxy contract code should be stored at the predeployed computed address', async function () {
-      await this.deployAccountPromise
-      expect(await ethers.provider.getCode(this.accountAddress)).to.not.equal('0x')
-    })
-
-    it('should set implementation', async function () {
-      await this.deployAccountPromise
-      const implementation = await this.account.implementation()
-      expect(implementation).to.be.equal(this.metaAccountImpl.address)
+      expect(await ethers.provider.getCode(this.proxyAccount.address)).to.not.equal('0x')
     })
 
     it('should set proxyOwner', async function () {
-      await this.deployAccountPromise
-      expect(await this.account.proxyOwner()).to.be.equal(this.proxyOwner.address)
+      expect(await this.proxyAccount.proxyOwner()).to.be.equal(this.proxyOwner.address)
     })
 
     it('gas cost', async function () {
-      await snapshotGas(this.deployAccountPromise)
+      // use deterministic proxyOwner address for snapshot, so gas cost is fixed
+      await snapshotGas(this.accountFactory.deployAccount(this.proxyOwner_4.address))
     })
   })
 
@@ -65,10 +49,10 @@ describe('Proxy', function () {
     it('should send Eth to the account', async function () {
       this.ethTransferAmount = BN(2).mul(BN18)
       await this.defaultAccount.sendTransaction({
-        to: this.account.address,
+        to: this.proxyAccount.address,
         value: this.ethTransferAmount
       })
-      expect(await ethers.provider.getBalance(this.account.address)).to.equal(this.ethTransferAmount)
+      expect(await ethers.provider.getBalance(this.proxyAccount.address)).to.equal(this.ethTransferAmount)
     })
   })
 
@@ -78,8 +62,8 @@ describe('Proxy', function () {
       this.tokenA = tokenA
       this.tokenTransferAmount = BN(2).mul(BN18)
       await this.tokenA.mint(this.defaultAccount.address, this.tokenTransferAmount)
-      await this.tokenA.transfer(this.account.address, this.tokenTransferAmount)
-      expect(await this.tokenA.balanceOf(this.account.address)).to.equal(this.tokenTransferAmount)
+      await this.tokenA.transfer(this.proxyAccount.address, this.tokenTransferAmount)
+      expect(await this.tokenA.balanceOf(this.proxyAccount.address)).to.equal(this.tokenTransferAmount)
     })
   })
 })

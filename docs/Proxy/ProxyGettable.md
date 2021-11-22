@@ -6,12 +6,6 @@ Exposes getter functions for Proxy.sol and contracts that are intended to receiv
 delegatecall data from a Proxy instance.
 
 
-### `implementation() → address` (public)
-
-
-
-Returns the implementation address
-
 ### `proxyOwner() → address` (public)
 
 

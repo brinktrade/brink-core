@@ -10,13 +10,6 @@ import "./ProxyStorage.sol";
  */
 contract ProxyGettable is ProxyStorage {
   /**
-   * @dev Returns the implementation address
-   */
-  function implementation() public view returns (address) {
-    return _implementation;
-  }
-
-  /**
    * @dev Returns the proxy owner address
    */
   function proxyOwner() public view returns (address) {
