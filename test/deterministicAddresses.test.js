@@ -19,6 +19,9 @@ describe('Account.sol', function () {
     const ProxyWrapper = await ethers.getContractFactory('ProxyWrapper')
     const proxyWrapper = await ProxyWrapper.deploy()
     expect(masterAccount.address, 'Deployed account address and Proxy ACCOUNT_IMPLEMENTATION are different').to.equal(await proxyWrapper.accountImplementation())
+
+    const AccountFactory = await ethers.getContractFactory('AccountFactory')
+    expect(AccountFactory.bytecode.includes(ACCOUNT.slice(2).toLowerCase()), 'AccountFactory bytecode does not contain masterAccount address. Update `deploy()` to use latest compiled Proxy.sol bytecode').to.be.true
   })
 })
 
