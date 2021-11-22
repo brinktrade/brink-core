@@ -30,13 +30,6 @@ describe('AccountFactory', function () {
       expect(await ethers.provider.getCode(this.proxyAccount.address)).to.not.equal('0x')
     })
 
-    it('should emit an AccountDeployed() event with account address param', async function () {
-      const promise = this.accountFactory.deployAccount(this.proxyOwner.address)
-      await expect(promise)
-              .to.emit(this.accountFactory, 'AccountDeployed')
-              .withArgs(toChecksumAddress(this.proxyAccount.address))
-    })
-
     it('gas cost', async function () {
       await snapshotGas(this.accountFactory.deployAccount(this.proxyOwner_2.address))
     })

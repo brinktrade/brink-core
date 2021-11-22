@@ -2,22 +2,17 @@
 pragma solidity =0.8.10;
 pragma abicoder v1;
 
-import "./ProxyStorage.sol";
-
 /**
  * @dev Proxy is deployed for each unique Brink account.
- *
- * The contract follows a standard "upgradable" pattern. It's fallback function
- * proxies all calls (via delegatecall) to the contract deployed at the
+ * @notice The contract fallback function proxies will delegatecall all calls to the contract deployed at the
  * ACCOUNT_IMPLEMENTATION address.
  */
-contract Proxy is ProxyStorage {
-  /**
-  * @dev The constructor sets `proxyOwner`
-  */
-  constructor(address proxyOwner) {
-    _owner = proxyOwner;
-  }
+contract Proxy {
+  /// @dev Address of the account implementation that deployed Proxy accounts will delegatecall to
+  address constant ACCOUNT_IMPLEMENTATION = 0x1a015312312c5508E077bAde7881F553aC44f288;
+
+  /// @dev Placeholder address for the proxy owner, replaced with the actual owner before deployment
+  address constant OWNER = 0xfefeFEFeFEFEFEFEFeFefefefefeFEfEfefefEfe;
 
  /**
   * @dev Fallback function performs a delegatecall to the ACCOUNT_IMPLEMENTATION contract.
@@ -40,5 +35,8 @@ contract Proxy is ProxyStorage {
    * Contracts that receive Ether directly but do not define a receive Ether function 
    * or a payable fallback function throw an exception, sending back the Ether. 
    */
-  receive() external payable { }
+  receive() external payable {
+    // this does nothing and costs minimal gas. It forces the compiler to include the OWNER constant in bytecode
+    assembly { mstore(mload(0x40), OWNER) }
+  }
 }
