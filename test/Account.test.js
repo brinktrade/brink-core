@@ -18,8 +18,6 @@ const {
   snapshotGas
 } = require('./helpers')
 
-const chainId = 1
-
 // keccak256("MetaDelegateCall_EIP1271(address to,bytes data)")
 const META_DELEGATE_CALL_EIP1271_TYPEHASH = '0x1d3b50d88adeb95016e86033ab418b64b7ecd66b70783b0dca7b0afc8bfb8a1e'
 
@@ -34,7 +32,9 @@ describe('Account', function () {
     this.proxyOwner_1 = proxyOwner_1
     this.transferRecipientAddress = '0xaff9aeda442C8D27a7F01490CA520dbdf088d1a2'
 
-    this.masterAccount = await deployMasterAccount(chainId)
+    this.chainId = await defaultAccount.getChainId()
+
+    this.masterAccount = await deployMasterAccount()
 
     const TestAccountCalls = await ethers.getContractFactory('TestAccountCalls')
     this.testAccountCalls = await TestAccountCalls.deploy()
@@ -223,7 +223,8 @@ describe('Account', function () {
         method: 'metaDelegateCall',
         signer: this.proxyOwner,
         params: [ this.testAccountCalls.address, signedData ],
-        unsignedData
+        unsignedData,
+        chainId: this.chainId
       })
       await expect(promise).to.emit(this.proxyAccount, 'MockParamsEvent')
         .withArgs(this.mockUint, this.mockInt, this.mockAddress)
@@ -238,7 +239,8 @@ describe('Account', function () {
           this.testAccountCalls.address,
           encodeFunctionCall('testEvent', ['uint'], [this.mockUint.toString()])
         ],
-        unsignedData: '0x'
+        unsignedData: '0x',
+        chainId: this.chainId
       })
       await expect(promise).to.emit(this.proxyAccount, 'MockParamEvent').withArgs(this.mockUint)
     })
@@ -254,7 +256,8 @@ describe('Account', function () {
         method: 'metaDelegateCall',
         signer: this.defaultAccount,
         params: [ this.testAccountCalls.address, signedData ],
-        unsignedData
+        unsignedData,
+        chainId: this.chainId
       })).to.be.revertedWith(`NotOwner("${this.defaultAccount.address}")`)
     })
 
@@ -267,7 +270,8 @@ describe('Account', function () {
         method: 'metaDelegateCall',
         signer: this.proxyOwner,
         params: [ this.testAccountCalls.address, signedData ],
-        unsignedData
+        unsignedData,
+        chainId: this.chainId
       })).to.be.revertedWith('TestAccountCalls: reverted')
     })
 
@@ -289,7 +293,8 @@ describe('Account', function () {
           this.emptyCallAddress,
           this.emptyCallData
         ],
-        unsignedData: '0x'
+        unsignedData: '0x',
+        chainId: this.chainId
       })
       await snapshotGas(promise)
     })

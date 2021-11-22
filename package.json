@@ -10,7 +10,7 @@
   "author": "@mikec & @kyrrui",
   "license": "GPL-3.0-or-later",
   "devDependencies": {
-    "@brinkninja/utils": "^0.3.0",
+    "@brinkninja/utils": "^0.3.2",
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@resolver-engine/core": "^0.3.3",
     "ethers": "^5.1.0",

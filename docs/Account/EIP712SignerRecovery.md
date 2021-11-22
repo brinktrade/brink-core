@@ -5,12 +5,6 @@ https://github.com/ethereum/EIPs/pull/712
 
 
 
-### `constructor(uint256 chainId_)` (public)
-
-
-
-
-
 ### `_recoverSigner(bytes32 dataHash, bytes signature) → address` (internal)
 
 

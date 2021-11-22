@@ -14,8 +14,6 @@ const {
   snapshotGas
 } = require('./helpers')
 
-const chainId = 1
-
 describe('DeployAndCall', function () {
   beforeEach(async function () {
     const { defaultAccount, transferRecipient, proxyOwner_3 } = await getSigners()
@@ -23,13 +21,15 @@ describe('DeployAndCall', function () {
     this.proxyOwner_3 = proxyOwner_3
     this.recipient = transferRecipient
 
+    this.chainId = await defaultAccount.getChainId()
+
     const TestAccountCalls = await ethers.getContractFactory('TestAccountCalls')
     const TestEmptyCall = await ethers.getContractFactory('TestEmptyCall')
     this.testEmptyCall = await TestEmptyCall.deploy()
     this.emptyCallAddress = this.testEmptyCall.address
     this.emptyCallData = encodeFunctionCall('testEmpty', [], [])
 
-    this.masterAccount = await deployMasterAccount(chainId)
+    this.masterAccount = await deployMasterAccount()
     this.deployAndCall = await deployDeployAndCall()
     this.accountFactory = await deployAccountFactory()
 
@@ -72,7 +72,8 @@ describe('DeployAndCall', function () {
             contract: { address: proxyAccountAddress },
             method: 'metaDelegateCall',
             signer: proxyOwner,
-            params
+            params,
+            chainId: this.chainId
           })
     
           // data for the tokenToEth swap call
@@ -124,7 +125,8 @@ describe('DeployAndCall', function () {
           contract: { address: this.proxyAccount.address },
           method: 'metaDelegateCall',
           signer: this.proxyOwner,
-          params
+          params,
+          chainId: this.chainId
         })
   
         // data for the testRevert call
