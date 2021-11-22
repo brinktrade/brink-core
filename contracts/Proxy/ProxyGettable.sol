@@ -6,7 +6,7 @@ pragma abicoder v1;
  * @dev Exposes getter functions for Proxy.sol and contracts that are intended to receive
  * delegatecall data from a Proxy instance.
  */
-contract ProxyGettable {
+abstract contract ProxyGettable {
   /**
    * @dev Returns the proxy owner address
    */

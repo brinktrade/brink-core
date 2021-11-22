@@ -6,7 +6,7 @@ import "../Interfaces/IERC1271.sol";
 
 /// @title Provides a validation check on a signer contract that implements EIP-1271
 /// @notice https://github.com/ethereum/EIPs/issues/1271
-contract EIP1271Validator {
+abstract contract EIP1271Validator {
 
   bytes4 constant internal MAGICVALUE = bytes4(keccak256("isValidSignature(bytes32,bytes)"));
 

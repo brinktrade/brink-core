@@ -6,7 +6,7 @@ import "./ECDSA.sol";
 
 /// @title Provides signer address recovery for EIP-712 signed messages
 /// @notice https://github.com/ethereum/EIPs/pull/712
-contract EIP712SignerRecovery {
+abstract contract EIP712SignerRecovery {
   /// @dev Recovers the signer address for an EIP-712 signed message
   /// @param dataHash Hash of the data included in the message
   /// @param signature An EIP-712 signature
