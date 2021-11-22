@@ -178,14 +178,14 @@ describe('Account', function () {
     })
   })
 
-  describe('storageLoad()', function () {
+  describe('unstructured storage', function () {
     beforeEach(async function () {
       const { proxyAccount, proxyOwner } = await setupProxyAccount()
       this.proxyOwner = proxyOwner
       this.proxyAccount = proxyAccount
     })
 
-    it('should return the storage value at the given pointer', async function () {
+    it('should be readable from off-chain', async function () {
       const inputVal = 123456
 
       // store the input value
@@ -194,8 +194,10 @@ describe('Account', function () {
         encodeFunctionCall('testStore', ['uint'], [inputVal])
       )
 
-      // read the value with storageLoad view function
-      const outputVal = await this.proxyAccount.storageLoad(soliditySha3('mockUint'))
+      // read the value from off-chian with getStorageAt RPC call
+      const outputVal = await ethers.provider.getStorageAt(
+        this.proxyAccount.address, soliditySha3('mockUint')
+      )
       expect(BN(outputVal)).to.equal(BN(inputVal))
     })
   })

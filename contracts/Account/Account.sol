@@ -45,12 +45,6 @@ contract Account is ProxyGettable, EIP712SignerRecovery, EIP1271Validator {
     META_DELEGATE_CALL_EIP1271_TYPEHASH = keccak256("MetaDelegateCall_EIP1271(address to,bytes data)");
   }
 
-  /// @dev Loads bytes32 data stored at the given pointer
-  /// @param ptr The pointer to the bytes32 data
-  function storageLoad(bytes32 ptr) external view returns (bytes32 data) {
-    assembly { data := sload(ptr) }
-  }
-
   /// @dev Makes a call to an external contract
   /// @dev Only executable directly by the proxy owner
   /// @param value Amount of wei to send with the call
