@@ -1,19 +1,11 @@
 ## `Proxy`
 
-
+The contract fallback function proxies will delegatecall all calls to the contract deployed at the
+ACCOUNT_IMPLEMENTATION address.
 
 Proxy is deployed for each unique Brink account.
 
-The contract follows a standard "upgradable" pattern. It's fallback function
-proxies all calls (via delegatecall) to the contract deployed at the
-ACCOUNT_IMPLEMENTATION address.
 
-
-### `constructor(address proxyOwner)` (public)
-
-
-
-The constructor sets `proxyOwner`
 
 ### `fallback()` (external)
 

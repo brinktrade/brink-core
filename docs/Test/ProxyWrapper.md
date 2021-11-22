@@ -11,7 +11,7 @@
 
 
 
-### `constructor(address proxyOwner)` (public)
+### `proxyOwner() → address` (external)
 
 
 
