@@ -5,10 +5,6 @@ pragma abicoder v1;
 /// @title Brink account factory
 /// @notice This is a factory contract used for deployment of Brink proxy accounts
 contract AccountFactory {
-  /// @dev Emit when a new Proxy account is deployed
-  /// @param account Address of the new Proxy account
-  event AccountDeployed(address account);
-
   /// @dev Salt used for salted deployment of Proxy accounts
   bytes32 constant SALT = 0x841eb53dae7d7c32f92a7e2a07956fb3b9b1532166bc47aa8f091f49bcaa9ff5;
 
@@ -22,10 +18,8 @@ contract AccountFactory {
       owner,
       hex'60405152005b3660008037600080366000731a015312312c5508e077bade7881f553ac44f2885af43d6000803e8080156055573d6000f35b3d6000fdfea164736f6c634300080a000a'
     );
-
     assembly {
       account := create2(0, add(initCode, 0x20), mload(initCode), SALT)
     }
-    emit AccountDeployed(account);
   }
 }
