@@ -18,13 +18,6 @@ Used by external functions to revert if they are called directly on the implemen
 
 Constructor sets immutable constants
 
-### `storageLoad(bytes32 ptr) → bytes32 data` (external)
-
-
-
-Loads bytes32 data stored at the given pointer
-
-
 ### `externalCall(uint256 value, address to, bytes data)` (external)
 
 
