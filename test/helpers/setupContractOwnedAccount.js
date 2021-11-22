@@ -3,10 +3,8 @@ const { ACCOUNT } = require('../../constants')
 const deployProxyAccount =require('./deployProxyAccount')
 const deployMasterAccount = require('./deployMasterAccount')
 
-const chainId = 1
-
 const setupContractOwnedAccount = async () => {
-  await deployMasterAccount(chainId)
+  await deployMasterAccount()
 
   // mocks GnosisSafe fallback handler to make sure this works with GnosisSafe
   const MockEIP1271ContractSigner = await ethers.getContractFactory('MockEIP1271ContractSigner')

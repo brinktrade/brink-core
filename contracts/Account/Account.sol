@@ -40,15 +40,9 @@ contract Account is ProxyGettable, EIP712SignerRecovery, EIP1271Validator {
   }
 
   /// @dev Constructor sets immutable constants
-  constructor(uint256 chainId_) EIP712SignerRecovery(chainId_) { 
+  constructor() { 
     META_DELEGATE_CALL_TYPEHASH = keccak256("MetaDelegateCall(address to,bytes data)");
     META_DELEGATE_CALL_EIP1271_TYPEHASH = keccak256("MetaDelegateCall_EIP1271(address to,bytes data)");
-  }
-
-  /// @dev Loads bytes32 data stored at the given pointer
-  /// @param ptr The pointer to the bytes32 data
-  function storageLoad(bytes32 ptr) external view returns (bytes32 data) {
-    assembly { data := sload(ptr) }
   }
 
   /// @dev Makes a call to an external contract

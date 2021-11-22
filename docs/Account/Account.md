@@ -12,18 +12,11 @@ contract are intended to be called only by `delegatecall` from other contracts.
 Used by external functions to revert if they are called directly on the implementation Account.sol contract
 
 
-### `constructor(uint256 chainId_)` (public)
+### `constructor()` (public)
 
 
 
 Constructor sets immutable constants
-
-### `storageLoad(bytes32 ptr) → bytes32 data` (external)
-
-
-
-Loads bytes32 data stored at the given pointer
-
 
 ### `externalCall(uint256 value, address to, bytes data)` (external)
 

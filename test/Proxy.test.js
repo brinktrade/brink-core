@@ -14,15 +14,13 @@ const {
   snapshotGas
 } = require('./helpers')
 
-const chainId = 1
-
 describe('Proxy', function () {
   beforeEach(async function () {
     const { defaultAccount, proxyOwner_4 } = await getSigners()
     this.defaultAccount = defaultAccount
     this.proxyOwner_4 = proxyOwner_4
     
-    await deployMasterAccount(chainId)
+    await deployMasterAccount()
     this.accountFactory = await deployAccountFactory();
 
     const { proxyOwner, proxyAccount } = await randomProxyAccount()

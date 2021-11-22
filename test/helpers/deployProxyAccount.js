@@ -5,12 +5,10 @@ const deployAccountFactory = require('./deployAccountFactory')
 const saltedDeployAddress = require('./saltedDeployAddress')
 const proxyBytecode = require('./proxyBytecode')
 
-const chainId = 1
-
 async function deployProxyAccount (ownerAddress) {
   const Proxy = await ethers.getContractFactory('Proxy')
 
-  await deployMasterAccount(chainId)
+  await deployMasterAccount()
   const accountFactory = await deployAccountFactory()
 
   const { address: proxyAddress } = saltedDeployAddress(
