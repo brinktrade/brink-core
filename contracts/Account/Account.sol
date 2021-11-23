@@ -19,6 +19,9 @@ contract Account is ProxyGettable, EIP712SignerRecovery, EIP1271Validator {
   /// @param signature Signature byte array associated with hash
   error InvalidSignature(bytes32 hash, bytes signature);
 
+  /// @dev Revert when signed data provided does not contain a functional signature
+  error InvalidSignedData();
+
   /// @dev Revert if the Account.sol implementation contract is called directly
   error NotDelegateCall();
 
@@ -101,6 +104,10 @@ contract Account is ProxyGettable, EIP712SignerRecovery, EIP1271Validator {
   function metaDelegateCall(
     address to, bytes calldata data, bytes calldata signature, bytes calldata unsignedData
   ) external payable onlyDelegateCallable {
+    if(data.length < 4) {
+      revert InvalidSignedData();
+    }
+
     address signer = _recoverSigner(
       keccak256(abi.encode(META_DELEGATE_CALL_TYPEHASH, to, keccak256(data))),
       signature
@@ -136,6 +143,10 @@ contract Account is ProxyGettable, EIP712SignerRecovery, EIP1271Validator {
   function metaDelegateCall_EIP1271(
     address to, bytes calldata data, bytes calldata signature, bytes calldata unsignedData
   ) external payable onlyDelegateCallable {
+    if(data.length < 4) {
+      revert InvalidSignedData();
+    }
+
     bytes32 hash = keccak256(abi.encode(META_DELEGATE_CALL_EIP1271_TYPEHASH, to, keccak256(data)));
     if(!_isValidSignature(proxyOwner(), hash, signature)) {
       revert InvalidSignature(hash, signature);

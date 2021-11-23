@@ -285,6 +285,21 @@ describe('Account', function () {
       ).to.be.revertedWith('NotDelegateCall()')
     })
 
+    it('when signedData length is less than 4 bytes, should revert with \'InvalidSignedData()\'', async function () {
+      const testEventCall = encodeFunctionCall('testEvent', ['uint256'], [ this.mockUint.toString()])
+      const signedData = `0x${testEventCall.slice(2,8)}` // first 3 bytes of functional sig
+      const unsignedData = `0x${testEventCall.slice(8,74)}` // the rest of the call
+      const { promise } = await metaTxPromise({
+        contract: this.proxyAccount,
+        method: 'metaDelegateCall',
+        signer: this.proxyOwner,
+        params: [ this.testAccountCalls.address, signedData ],
+        unsignedData,
+        chainId: this.chainId
+      })
+      await expect(promise).to.be.revertedWith('InvalidSignedData()')
+    })
+
     it('gas cost', async function () {
       const { proxyAccount } = await setupProxyAccount(this.proxyOwner_1)
       const { promise } = await metaTxPromise({
@@ -337,6 +352,15 @@ describe('Account', function () {
       // that they exist using it's implementation of `isValidSignature`.
       // For the purposes of these tests, the mock signature could be any arbitrary bytes data
       await this.proxyOwner.setValidSignature(this.validCallDataHash, this.validMockSignature)
+
+      // setup test for a valid call with invalid signed data (less than 4 bytes)
+      this.invalidSignedData = `0x${this.validCallData.slice(2,8)}` // first 3 bytes of functional sig
+      const validCallWithInvalidDataHash = metaCallDataHash({
+        metaCallTypeHash: META_DELEGATE_CALL_EIP1271_TYPEHASH,
+        to: this.testAccountCalls.address,
+        data: this.invalidSignedData
+      })
+      await this.proxyOwner.setValidSignature(validCallWithInvalidDataHash, this.validMockSignature)
     })
 
     it('when proxyOwner validates that the call is signed, should execute the delegatecall', async function () {
@@ -369,6 +393,14 @@ describe('Account', function () {
           this.testAccountCalls.address, this.validCallData, this.validMockSignature, '0x'
         )
       ).to.be.revertedWith('NotDelegateCall()')
+    })
+
+    it('when signedData length is less than 4 bytes, should revert with \'InvalidSignedData()\'', async function () {
+      const signedData = `0x${this.validCallData.slice(8,74)}`
+      const promise = this.contractOwnedAccount.metaDelegateCall_EIP1271(
+        this.testAccountCalls.address, this.invalidSignedData, this.validMockSignature, signedData
+      )
+      await expect(promise).to.be.revertedWith('InvalidSignedData()') 
     })
 
     it('gas cost', async function () {
