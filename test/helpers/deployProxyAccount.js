@@ -6,8 +6,6 @@ const saltedDeployAddress = require('./saltedDeployAddress')
 const proxyBytecode = require('./proxyBytecode')
 
 async function deployProxyAccount (ownerAddress) {
-  const Proxy = await ethers.getContractFactory('Proxy')
-
   await deployMasterAccount()
   const accountFactory = await deployAccountFactory()
 
@@ -23,7 +21,8 @@ async function deployProxyAccount (ownerAddress) {
     throw new Error(`Proxy deploy to ${proxyAddress} failed`)
   }
 
-  const proxy = Proxy.attach(proxyAddress)
+  const Account = await ethers.getContractFactory('Account')
+  const proxy = Account.attach(proxyAddress)
   return proxy
 }
 

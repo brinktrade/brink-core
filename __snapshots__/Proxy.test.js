@@ -1,3 +1,3 @@
-exports['Proxy when proxy is deployed gas cost 1'] = 74571
+exports['Proxy (deployed by AccountFactory.sol) when proxy is deployed gas cost 1'] = 66885
 
-exports['Proxy when Proxy account receives ETH gas cost 1'] = 21051
+exports['Proxy (deployed by AccountFactory.sol) when Proxy account receives ETH gas cost 1'] = 23712
