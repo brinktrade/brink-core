@@ -11,12 +11,13 @@ contract AccountFactory {
   /// @dev Deploys a Proxy account for the given owner
   /// @param owner Owner of the Proxy account
   /// @return account Address of the deployed Proxy account
+  /// @notice This deploys a "minimal proxy" contract (https://eips.ethereum.org/EIPS/eip-1167) with the proxy owner
+  /// address added to the deployed bytecode. The owner address can be read within a delegatecall by using `extcodecopy`
   function deployAccount(address owner) external returns (address account) {
-    // replace OWNER constant slot in Proxy.sol bytecode with `owner` to generate the initCode for the proxy
     bytes memory initCode = abi.encodePacked(
-      hex'6080604052348015600f57600080fd5b5060678061001e6000396000f3fe60806040523660235773',
-      owner,
-      hex'60405152005b366000803760008036600073e70bb94fb9e7ae1cd209b00d8ababea1cc8f167d5af43d6000803e8080156055573d6000f35b3d6000fdfea164736f6c634300080a000a'
+      //  [*** constructor **][**** eip-1167 ****][******* implementation_address *******][********* eip-1167 *********]
+      hex'3d604180600a3d3981f3363d3d373d3d3d363d7320462190079006816ce1b85664f6202873b4e4165af43d82803e903d91602b57fd5bf3',
+      owner
     );
     assembly {
       account := create2(0, add(initCode, 0x20), mload(initCode), SALT)

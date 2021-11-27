@@ -2,14 +2,13 @@
 pragma solidity =0.8.10;
 pragma abicoder v1;
 
-import "../Proxy/ProxyGettable.sol";
 import "./EIP712SignerRecovery.sol";
 import "./EIP1271Validator.sol";
 
 /// @title Brink account core
-/// @notice Deployed once and used by many Proxy contracts as the implementation contract. External functions in this
-/// contract are intended to be called only by `delegatecall` from other contracts.
-contract Account is ProxyGettable, EIP712SignerRecovery, EIP1271Validator {
+/// @notice Deployed once and used by many proxy contracts as the implementation contract. External functions in this
+/// contract are intended to be called by `delegatecall` from proxy contracts deployed by AccountFactory.
+contract Account is EIP712SignerRecovery, EIP1271Validator {
   /// @dev Revert if signer of a transaction or EIP712 message signer is not the proxy owner
   /// @param signer The address that is not the owner
   error NotOwner(address signer);
@@ -155,4 +154,15 @@ contract Account is ProxyGettable, EIP712SignerRecovery, EIP1271Validator {
       }
     }
   }
+
+  /// @dev Returns the owner address for the proxy
+  /// @return _proxyOwner The owner address for the proxy
+  function proxyOwner() internal view returns (address _proxyOwner) {
+    assembly {
+      extcodecopy(address(), mload(0x40), 0x2d, 0x14)
+      _proxyOwner := mload(sub(mload(0x40), 0x0c))
+    }
+  }
+
+  receive() external payable { }
 }

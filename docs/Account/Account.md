@@ -1,7 +1,7 @@
 ## `Account`
 
-Deployed once and used by many Proxy contracts as the implementation contract. External functions in this
-contract are intended to be called only by `delegatecall` from other contracts.
+Deployed once and used by many proxy contracts as the implementation contract. External functions in this
+contract are intended to be called by `delegatecall` from proxy contracts deployed by AccountFactory.
 
 
 
@@ -51,6 +51,19 @@ total loss of the account.
 
 Allows execution of a delegatecall if proxyOwner is a smart contract. Uses EIP-1271
 (https://eips.ethereum.org/EIPS/eip-1271) signer validation.
+
+
+### `proxyOwner() → address _proxyOwner` (internal)
+
+
+
+Returns the owner address for the proxy
+
+
+### `receive()` (external)
+
+
+
 
 
 
