@@ -6,7 +6,7 @@ pragma abicoder v1;
 /// @notice This is a factory contract used for deployment of Brink proxy accounts
 contract AccountFactory {
   /// @dev Salt used for salted deployment of Proxy accounts
-  bytes32 constant SALT = 0x841eb53dae7d7c32f92a7e2a07956fb3b9b1532166bc47aa8f091f49bcaa9ff5;
+  bytes32 constant SALT = 0x5175f702e5f6e1a12f068fa2dd37cd29f87e0815d094cb39c88bbb0667c8714f;
 
   /// @dev Deploys a Proxy account for the given owner
   /// @param owner Owner of the Proxy account
@@ -16,7 +16,7 @@ contract AccountFactory {
   function deployAccount(address owner) external returns (address account) {
     bytes memory initCode = abi.encodePacked(
       //  [*** constructor **] [**** eip-1167 ****] [******* implementation_address *******] [********* eip-1167 *********]
-      hex'3d604180600a3d3981f3_363d3d373d3d3d363d73_1c90cf2b3b42105b34ff37f4ffb6783882076d0e_5af43d82803e903d91602b57fd5bf3',
+      hex'3d604180600a3d3981f3_363d3d373d3d3d363d73_02fea82359954725dec7b135764c4a2d988475e7_5af43d82803e903d91602b57fd5bf3',
       owner
     );
     assembly {
