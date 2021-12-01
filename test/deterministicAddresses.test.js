@@ -1,9 +1,10 @@
 const { ethers } = require('hardhat')
 const snapshot = require('snap-shot-it')
 const { expect } = require('chai')
-const { ACCOUNT, ACCOUNT_FACTORY, DEPLOY_AND_CALL } = require('../constants')
+const { ACCOUNT, ACCOUNT_FACTORY, DEPLOY_AND_CALL, SALTED_DEPLOYER } = require('../constants')
 const { ZERO_ADDRESS } = require('@brinkninja/utils').constants
 const {
+  deploySaltedContract,
   deployMasterAccount,
   deployAccountFactory,
   deployDeployAndCall
@@ -40,5 +41,15 @@ describe('DeployAndCall.sol', function () {
     const deployAndCall = await deployDeployAndCall()
     snapshot(deployAndCall.address)
     expect(deployAndCall.address, 'Deployed DeployAndCall address and DEPLOY_AND_CALL constant are different').to.equal(DEPLOY_AND_CALL)
+  })
+})
+
+describe('SaltedDeployer.sol', function () {
+  // check that deployed SaltedDeployer.sol address matches values in constants and snapshots
+  it('deterministic address check', async function () {
+    // deploys SaltedDeployer via SingletonFactory to get the deterministic address
+    const saltedDeployer = await deploySaltedContract('SaltedDeployer')
+    snapshot(saltedDeployer.address)
+    expect(saltedDeployer.address, 'Deployed SaltedDeployer address and SALTED_DEPLOYER constant are different').to.equal(SALTED_DEPLOYER)
   })
 })

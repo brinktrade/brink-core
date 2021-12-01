@@ -9,3 +9,7 @@ exports['AccountFactory.sol deterministic address check 1'] = `
 exports['DeployAndCall.sol deterministic address check 1'] = `
 0x13FFD9e9de9a06c3725df2186215F0DA4857Bb72
 `
+
+exports['SaltedDeployer.sol deterministic address check 1'] = `
+0x0cc05334A1CD96AAcEEF9B8bCeA6EDcc49D6c1F7
+`
