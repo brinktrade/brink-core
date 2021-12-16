@@ -15,8 +15,8 @@ contract AccountFactory {
   /// address added to the deployed bytecode. The owner address can be read within a delegatecall by using `extcodecopy`
   function deployAccount(address owner) external returns (address account) {
     bytes memory initCode = abi.encodePacked(
-      //  [*** constructor **] [**** eip-1167 ****] [******* implementation_address *******] [********* eip-1167 *********]
-      hex'3d604180600a3d3981f3_363d3d373d3d3d363d73_4711b476a2397123c28b73c5447b7c5b09178abf_5af43d82803e903d91602b57fd5bf3',
+      //  [*** constructor **] [**** eip-1167 ****] [***** implementation_address *****] [********* eip-1167 *********]
+      hex'3d603f80600a3d3981f3_363d3d373d3d3d363d71_ba32c62c912b6fc12392b96851fe088b577d_5af43d82803e903d91602957fd5bf3',
       owner
     );
     assembly {
