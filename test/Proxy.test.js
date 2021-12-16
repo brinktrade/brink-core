@@ -1,7 +1,6 @@
 const hre = require('hardhat')
 const { ethers } = hre
 const { expect } = require('chai')
-const { randomHex, toChecksumAddress } = require('web3-utils')
 const brinkUtils = require('@brinkninja/utils')
 const { BN, encodeFunctionCall } = brinkUtils
 const { BN18 } = brinkUtils.constants
@@ -9,7 +8,6 @@ const { deployTestTokens } = brinkUtils.testHelpers(ethers)
 const {
   getSigners,
   getProxyOwnerAddress,
-  proxyAccountFromOwner,
   randomProxyAccount,
   deployMasterAccount,
   deployAccountFactory,
@@ -41,41 +39,43 @@ describe('Proxy (deployed by AccountFactory.sol)', function () {
       expect(await getProxyOwnerAddress(this.proxyAccount.address)).to.be.equal(this.proxyOwner.address)
     })
 
-    describe('for owner with leading zeros in address', function () {
+    describe('for owner with leading and trailing zeros in address', function () {
       beforeEach(async function () {
-        let addr = randomHex(20)
-        addr = `${addr.substr(0, 2)}00000000${addr.substr(10)}`
-        this.ownerAddrWithZeros = toChecksumAddress(addr)
-        this.accountAddr = await proxyAccountFromOwner(this.ownerAddrWithZeros)
-        await this.accountFactory.deployAccount(this.ownerAddrWithZeros)
+        const { proxyOwner, proxyAccount } = await randomProxyAccount({ leadingZeros: 6, trailingZeros: 6 })
+        this.proxyAccount = proxyAccount
+        this.proxyOwner = proxyOwner
+
+        await this.accountFactory.deployAccount(this.proxyOwner.address)
       })
 
       it('should append owner address in deployed bytecode', async function () {
-        expect(await getProxyOwnerAddress(this.accountAddr)).to.be.equal(this.ownerAddrWithZeros)
+        expect(await getProxyOwnerAddress(this.proxyAccount.address)).to.be.equal(this.proxyOwner.address)
       })
 
       it('should be able to verify owner from Account implementation', async function () {
-        await hre.network.provider.request({
-          method: "hardhat_impersonateAccount",
-          params: [this.ownerAddrWithZeros],
-        })
         await this.defaultAccount.sendTransaction({
-          to: this.ownerAddrWithZeros,
+          to: this.proxyOwner.address,
           value: BN(1000).mul(BN18)
         })
-        const owner = await ethers.getSigner(this.ownerAddrWithZeros)
 
         const TestAccountCalls = await ethers.getContractFactory('TestAccountCalls')
         const testAccountCalls = await TestAccountCalls.deploy()
-        
-        const Account = await ethers.getContractFactory('Account')
-        const proxy = Account.attach(this.accountAddr).connect(owner)
-        const testCallsContract = TestAccountCalls.attach(proxy.address)
+        const testCallsContract = TestAccountCalls.attach(this.proxyAccount.address)
 
-        const promise = proxy.delegateCall(
+        const promise = this.proxyAccount.connect(this.proxyOwner).delegateCall(
           testAccountCalls.address, encodeFunctionCall('testEvent', ['uint'], [123])
         )
         await expect(promise).to.emit(testCallsContract, 'MockParamEvent').withArgs(123)
+      })
+
+      it('should be able to receive ETH', async function () {
+        // extra check that owner is read correctly and the delegatecall to fallback receive on implementation succeeds
+        const ethSendAmount = BN(3).mul(BN18)
+        await this.defaultAccount.sendTransaction({
+          to: this.proxyAccount.address,
+          value: ethSendAmount
+        })
+        expect(await ethers.provider.getBalance(this.proxyAccount.address)).to.equal(ethSendAmount)
       })
     })
 
