@@ -17,7 +17,7 @@ contract SaltedDeployer {
   error DeploymentExists();
 
   /// @dev Salt used for salted deployments
-  bytes32 constant SALT = bytes32(uint(0xe281));
+  bytes32 constant SALT = bytes32(uint(0x1f6e0));
 
   /// @dev Canonical SingletonFactory address
   /// @notice https://eips.ethereum.org/EIPS/eip-2470

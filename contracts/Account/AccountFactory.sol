@@ -16,7 +16,7 @@ contract AccountFactory {
   function deployAccount(address owner) external returns (address account) {
     bytes memory initCode = abi.encodePacked(
       //  [*** constructor **] [**** eip-1167 ****] [***** implementation_address *****] [********* eip-1167 *********]
-      hex'3d603f80600a3d3981f3_363d3d373d3d3d363d71_ba32c62c912b6fc12392b96851fe088b577d_5af43d82803e903d91602957fd5bf3',
+      hex'3d603f80600a3d3981f3_363d3d373d3d3d363d71_6be0efcaf36058f5ee52d2796473242bdccd_5af43d82803e903d91602957fd5bf3',
       owner
     );
     assembly {
