@@ -5,6 +5,8 @@ pragma abicoder v1;
 /// @title Brink account factory
 /// @notice This is a factory contract used for deployment of Brink proxy accounts
 contract AccountFactory {
+  error DeployFailed();
+
   /// @dev Deploys a Proxy account for the given owner
   /// @param owner Owner of the Proxy account
   /// @return account Address of the deployed Proxy account
@@ -20,6 +22,9 @@ contract AccountFactory {
     );
     assembly {
       account := create2(0, add(initCode, 0x20), mload(initCode), 0)
+    }
+    if(account == address(0)) {
+      revert DeployFailed();
     }
   }
 }
