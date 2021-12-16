@@ -1,5 +1,5 @@
 const { ethers } = require('hardhat')
-const { ACCOUNT_FACTORY, PROXY_DEPLOY_SALT } = require('../../constants')
+const { ACCOUNT_FACTORY } = require('../../constants')
 const deployMasterAccount = require('./deployMasterAccount')
 const deployAccountFactory = require('./deployAccountFactory')
 const saltedDeployAddress = require('./saltedDeployAddress')
@@ -10,7 +10,7 @@ async function deployProxyAccount (ownerAddress) {
   const accountFactory = await deployAccountFactory()
 
   const { address: proxyAddress } = saltedDeployAddress(
-    ACCOUNT_FACTORY, PROXY_DEPLOY_SALT, await proxyBytecode(ownerAddress), [], []
+    ACCOUNT_FACTORY, '0x', await proxyBytecode(ownerAddress), [], []
   )
 
   if (await ethers.provider.getCode(proxyAddress) == '0x') {
