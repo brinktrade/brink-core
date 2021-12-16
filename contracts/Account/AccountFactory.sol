@@ -17,8 +17,8 @@ contract AccountFactory {
   /// utilizes the "vanity address optimization" from EIP 1167
   function deployAccount(address owner) external returns (address account) {
     bytes memory initCode = abi.encodePacked(
-      //  [*** constructor **] [** minimal proxy ***] [********* implementation *********] [**** minimal proxy *****]
-      hex'3d603e80600a3d3981f3_3d3d3d3d363d3d37363d71_f673cb919a0d37a55a20263b490614eed150_5af43d3d93803e602857fd5bf3',
+      //  [* constructor **] [** minimal proxy ***] [********* implementation *********] [**** minimal proxy *****]
+      hex'603e3d8160093d39f3_3d3d3d3d363d3d37363d71_f673cb919a0d37a55a20263b490614eed150_5af43d3d93803e602857fd5bf3',
       owner
     );
     assembly {

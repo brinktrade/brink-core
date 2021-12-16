@@ -8,7 +8,7 @@ import "../Account/AccountFactory.sol";
 /// @notice This contract contains a function to batch account deploy and call into one transaction
 contract DeployAndCall {
   /// @dev The AccountFactory to use for account deployments
-  AccountFactory constant ACCOUNT_FACTORY = AccountFactory(0x6D838708fe3C316c3872b91Ba3a0D939B07D3D2f);
+  AccountFactory constant ACCOUNT_FACTORY = AccountFactory(0xbb1eee341ed905F1d6d1f9e34e9119f032aB8f0E);
 
   /// @dev Deploys an account for the given owner and executes callData on the account
   /// @param owner Address of the account owner
