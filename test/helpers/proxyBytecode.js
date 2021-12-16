@@ -1,9 +1,9 @@
 const { ACCOUNT } = require('../../constants')
 
 async function proxyBytecode (proxyOwnerAddress) {
-  return '3d603f80600a3d3981f3363d3d373d3d3d363d71'
+  return '3d603e80600a3d3981f33d3d3d3d363d3d37363d71'
     + removeLeadingZeros(ACCOUNT.slice(2)).toLowerCase()
-    + '5af43d82803e903d91602957fd5bf3'
+    + '5af43d3d93803e602857fd5bf3'
     + proxyOwnerAddress.slice(2).toLowerCase()
 }
 

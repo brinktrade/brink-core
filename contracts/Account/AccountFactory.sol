@@ -11,12 +11,14 @@ contract AccountFactory {
   /// @dev Deploys a Proxy account for the given owner
   /// @param owner Owner of the Proxy account
   /// @return account Address of the deployed Proxy account
-  /// @notice This deploys a "minimal proxy" contract (https://eips.ethereum.org/EIPS/eip-1167) with the proxy owner
-  /// address added to the deployed bytecode. The owner address can be read within a delegatecall by using `extcodecopy`
+  /// @notice This deploys a "minimal proxy" contract with the proxy owner address added to the deployed bytecode. The
+  /// owner address can be read within a delegatecall by using `extcodecopy`. Minimal proxy bytecode is from
+  /// https://medium.com/coinmonks/the-more-minimal-proxy-5756ae08ee48 and https://eips.ethereum.org/EIPS/eip-1167. It
+  /// utilizes the "vanity address optimization" from EIP 1167
   function deployAccount(address owner) external returns (address account) {
     bytes memory initCode = abi.encodePacked(
-      //  [*** constructor **] [**** eip-1167 ****] [***** implementation_address *****] [********* eip-1167 *********]
-      hex'3d603f80600a3d3981f3_363d3d373d3d3d363d71_6be0efcaf36058f5ee52d2796473242bdccd_5af43d82803e903d91602957fd5bf3',
+      //  [*** constructor **] [** minimal proxy ***] [********* implementation *********] [**** minimal proxy *****]
+      hex'3d603e80600a3d3981f3_3d3d3d3d363d3d37363d71_f673cb919a0d37a55a20263b490614eed150_5af43d3d93803e602857fd5bf3',
       owner
     );
     assembly {
