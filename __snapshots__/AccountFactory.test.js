@@ -1,1 +1,1 @@
-exports['AccountFactory deployAccount() gas cost 1'] = 66350
+exports['AccountFactory deployAccount() gas cost 1'] = 66150
