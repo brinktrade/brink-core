@@ -1,6 +1,7 @@
 const hre = require('hardhat')
 const { ethers } = hre
 const { expect } = require('chai')
+const { randomHex, toChecksumAddress } = require('web3-utils')
 const brinkUtils = require('@brinkninja/utils')
 const { BN, encodeFunctionCall } = brinkUtils
 const { BN18 } = brinkUtils.constants
@@ -42,7 +43,9 @@ describe('Proxy (deployed by AccountFactory.sol)', function () {
 
     describe('for owner with leading zeros in address', function () {
       beforeEach(async function () {
-        this.ownerAddrWithZeros = '0x000080D8d8693a950C4c262C99Bf9ad47923E9af'
+        let addr = randomHex(20)
+        addr = `${addr.substr(0, 2)}00000000${addr.substr(10)}`
+        this.ownerAddrWithZeros = toChecksumAddress(addr)
         this.accountAddr = await proxyAccountFromOwner(this.ownerAddrWithZeros)
         await this.accountFactory.deployAccount(this.ownerAddrWithZeros)
       })
