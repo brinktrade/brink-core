@@ -1,5 +1,5 @@
 const { ethers } = require('hardhat')
-const { SINGLETON_FACTORY, CONTRACT_DEPLOY_SALT } = require('../../constants')
+const { SINGLETON_FACTORY, SALTED_DEPLOYER_SALT } = require('../../constants')
 const deploySingletonFactory = require('./deploySingletonFactory')
 const saltedDeployAddress = require('./saltedDeployAddress')
 
@@ -11,7 +11,7 @@ async function deploySaltedBytecode (bytecode, initParamTypes = [], initParamVal
   const saltedDeployer = await SaltedDeployer.deploy()
 
   const { address: address_JS, initCode } = saltedDeployAddress(
-    SINGLETON_FACTORY, CONTRACT_DEPLOY_SALT, bytecode, initParamTypes, initParamValues
+    SINGLETON_FACTORY, SALTED_DEPLOYER_SALT, bytecode, initParamTypes, initParamValues
   )
   const address_Solidity = await saltedDeployer.getDeployAddress(initCode)
 
