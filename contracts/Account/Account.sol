@@ -160,7 +160,7 @@ contract Account is EIP712SignerRecovery, EIP1271Validator {
   function proxyOwner() internal view returns (address _proxyOwner) {
     assembly {
       // copies to "scratch space" 0 memory pointer
-      extcodecopy(address(), 0, 0x29, 0x14)
+      extcodecopy(address(), 0, 0x28, 0x14)
       _proxyOwner := shr(0x60, mload(0))
     }
   }
