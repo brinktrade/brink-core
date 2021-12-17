@@ -17,7 +17,7 @@ contract SaltedDeployer {
   error DeploymentExists();
 
   /// @dev Salt used for salted deployments
-  bytes32 constant SALT = 0xa673c34e43742984a277506c967311f8de686653b0232a554cf57699fa5dc522;
+  bytes32 constant SALT = 0xd2a5b1e84cb7a6df481438c61ec4144631172d3d29b2a30fe7c5f0fbf4e51735;
 
   /// @dev Canonical SingletonFactory address
   /// @notice https://eips.ethereum.org/EIPS/eip-2470
@@ -46,13 +46,6 @@ contract SaltedDeployer {
   }
 
   function _isContract(address account) internal view returns (bool) {
-    // This method relies on extcodesize, which returns 0 for contracts in construction, since the code is only stored
-    // at the end of the constructor execution.
-
-    uint256 size;
-    assembly {
-      size := extcodesize(account)
-    }
-    return size > 0;
+    return account.code.length > 0;
   }
 }

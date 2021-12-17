@@ -5,22 +5,26 @@ pragma abicoder v1;
 /// @title Brink account factory
 /// @notice This is a factory contract used for deployment of Brink proxy accounts
 contract AccountFactory {
-  /// @dev Salt used for salted deployment of Proxy accounts
-  bytes32 constant SALT = 0xa673c34e43742984a277506c967311f8de686653b0232a554cf57699fa5dc522;
+  error DeployFailed();
 
   /// @dev Deploys a Proxy account for the given owner
   /// @param owner Owner of the Proxy account
   /// @return account Address of the deployed Proxy account
-  /// @notice This deploys a "minimal proxy" contract (https://eips.ethereum.org/EIPS/eip-1167) with the proxy owner
-  /// address added to the deployed bytecode. The owner address can be read within a delegatecall by using `extcodecopy`
+  /// @notice This deploys a "minimal proxy" contract with the proxy owner address added to the deployed bytecode. The
+  /// owner address can be read within a delegatecall by using `extcodecopy`. Minimal proxy bytecode is from
+  /// https://medium.com/coinmonks/the-more-minimal-proxy-5756ae08ee48 and https://eips.ethereum.org/EIPS/eip-1167. It
+  /// utilizes the "vanity address optimization" from EIP 1167
   function deployAccount(address owner) external returns (address account) {
     bytes memory initCode = abi.encodePacked(
-      //  [*** constructor **] [**** eip-1167 ****] [******* implementation_address *******] [********* eip-1167 *********]
-      hex'3d604180600a3d3981f3_363d3d373d3d3d363d73_4711b476a2397123c28b73c5447b7c5b09178abf_5af43d82803e903d91602b57fd5bf3',
+      //  [* constructor **] [** minimal proxy ***] [******* implementation *******] [**** minimal proxy *****]
+      hex'603c3d8160093d39f3_3d3d3d3d363d3d37363d6f_afcbce78c080f96032a5c1cb1b832d7b_5af43d3d93803e602657fd5bf3',
       owner
     );
     assembly {
-      account := create2(0, add(initCode, 0x20), mload(initCode), SALT)
+      account := create2(0, add(initCode, 0x20), mload(initCode), 0)
+    }
+    if(account == address(0)) {
+      revert DeployFailed();
     }
   }
 }

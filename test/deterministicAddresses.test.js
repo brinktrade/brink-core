@@ -18,7 +18,7 @@ describe('Account.sol', function () {
     expect(masterAccount.address, 'Deployed account address and ACCOUNT constant are different').to.equal(ACCOUNT)
 
     const AccountFactory = await ethers.getContractFactory('AccountFactory')
-    expect(AccountFactory.bytecode.includes(ACCOUNT.slice(2).toLowerCase()), 'AccountFactory bytecode does not contain masterAccount address. Update `deploy()` to use latest compiled Proxy.sol bytecode').to.be.true
+    expect(AccountFactory.bytecode.includes(removeLeadingZeros(ACCOUNT.slice(2)).toLowerCase()), 'AccountFactory bytecode does not contain masterAccount address. Update `deploy()` to use latest compiled Proxy.sol bytecode').to.be.true
   })
 })
 
@@ -53,3 +53,5 @@ describe('SaltedDeployer.sol', function () {
     expect(saltedDeployer.address, 'Deployed SaltedDeployer address and SALTED_DEPLOYER constant are different').to.equal(SALTED_DEPLOYER)
   })
 })
+
+const removeLeadingZeros = s => s.replace(/^0+/, '')

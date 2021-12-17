@@ -159,8 +159,9 @@ contract Account is EIP712SignerRecovery, EIP1271Validator {
   /// @return _proxyOwner The owner address for the proxy
   function proxyOwner() internal view returns (address _proxyOwner) {
     assembly {
-      extcodecopy(address(), mload(0x40), 0x2d, 0x14)
-      _proxyOwner := shr(0x60, mload(mload(0x40)))
+      // copies to "scratch space" 0 memory pointer
+      extcodecopy(address(), 0, 0x28, 0x14)
+      _proxyOwner := shr(0x60, mload(0))
     }
   }
 

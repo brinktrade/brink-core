@@ -10,7 +10,7 @@ async function deployProxyAccount (ownerAddress) {
   const accountFactory = await deployAccountFactory()
 
   const { address: proxyAddress } = saltedDeployAddress(
-    ACCOUNT_FACTORY, await proxyBytecode(ownerAddress), [], []
+    ACCOUNT_FACTORY, '0x', await proxyBytecode(ownerAddress), [], []
   )
 
   if (await ethers.provider.getCode(proxyAddress) == '0x') {

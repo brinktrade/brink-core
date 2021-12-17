@@ -4,7 +4,7 @@ const { ACCOUNT_FACTORY } = require('../../constants')
 
 async function proxyAccountFromOwner (proxyOwnerAddress) {
   const { address: proxyAccountAddress } = saltedDeployAddress(
-    ACCOUNT_FACTORY, await proxyBytecode(proxyOwnerAddress), [], []
+    ACCOUNT_FACTORY, '0x', await proxyBytecode(proxyOwnerAddress), [], []
   )
   return proxyAccountAddress
 }
