@@ -11,5 +11,5 @@ exports['DeployAndCall.sol deterministic address check 1'] = `
 `
 
 exports['SaltedDeployer.sol deterministic address check 1'] = `
-0xDA120C17d9DE1c2BbC5F3ddc80D2324bEeBfe84d
+0x6b24634B517a63Ed0fa2a39977286e13e7E35E25
 `
