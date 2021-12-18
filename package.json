@@ -5,7 +5,8 @@
     "compile": "hardhat compile",
     "test": "hardhat test",
     "docgen": "rm -rf docs && solidity-docgen --solc-module solc-0.8.10",
-    "vanity-gen": "hardhat run generateVanityAddress.js"
+    "vanity-gen": "hardhat run generateVanityAddress.js",
+    "exports-gen": "node ./generateExports.js"
   },
   "description": "Core contracts for Brink accounts",
   "author": "@mikec & @kyrrui",
