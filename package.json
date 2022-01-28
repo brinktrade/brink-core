@@ -15,6 +15,7 @@
     "@brinkninja/utils": "^0.3.2",
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@resolver-engine/core": "^0.3.3",
+    "chai": "^4.3.6",
     "ethers": "^5.1.0",
     "ethereum-waffle": "^3.4.0",
     "hardhat": "^2.1.2",
