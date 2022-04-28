@@ -20,7 +20,7 @@ contract MockEIP1271Validator is ISignatureValidator {
   mapping(bytes32 => bool) _validDataHash;
   mapping(bytes32 => bool) _validSigHashes;
 
-  function isValidSignature(bytes calldata _data, bytes calldata _signature) public view override returns (bytes4) {
+  function isValidSignature(bytes memory _data, bytes memory _signature) public view override returns (bytes4) {
     if (_validDataHash[keccak256(_data)] == true && _validSigHashes[keccak256(_signature)] == true) {
       return EIP1271_MAGIC_VALUE;
     } else {
