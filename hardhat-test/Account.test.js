@@ -40,9 +40,9 @@ describe('Account', function () {
     this.testAccountCalls = await TestAccountCalls.deploy()
 
     const TestEmptyCall = await ethers.getContractFactory('TestEmptyCall')
-    this.testEmptyCall = await TestEmptyCall.deploy()
-    this.emptyCallAddress = this.testEmptyCall.address
-    this.emptyCallData = encodeFunctionCall('testEmpty', [], [])
+    this.emptyTestCall = await TestEmptyCall.deploy()
+    this.emptyCallAddress = this.emptyTestCall.address
+    this.emptyCallData = encodeFunctionCall('emptyTest', [], [])
   })
 
   describe('sending ETH to proxy account address', function () {
@@ -140,7 +140,7 @@ describe('Account', function () {
       this.mockInt = -12345
       this.mockAddress = '0x26828defe92D67a291995A66d0442C4A3Bca5b12'
       this.testCall = encodeFunctionCall(
-        'testEvent',
+        'eventTest',
         ['uint', 'int24', 'address'],
         [this.mockUint, this.mockInt, this.mockAddress]
       )
@@ -163,7 +163,7 @@ describe('Account', function () {
       await expect(this.proxyAccount.connect(this.proxyOwner).externalCall(
         0,
         this.testAccountCalls.address,
-        encodeFunctionCall('testRevert', ['bool'], [true])
+        encodeFunctionCall('revertTest', ['bool'], [true])
       )).to.be.revertedWith('TestAccountCalls: reverted')
     })
 
@@ -191,7 +191,7 @@ describe('Account', function () {
       // store the input value
       await this.proxyAccount.connect(this.proxyOwner).delegateCall(
         this.testAccountCalls.address,
-        encodeFunctionCall('testStore', ['uint'], [inputVal])
+        encodeFunctionCall('storeTest', ['uint'], [inputVal])
       )
 
       // read the value from off-chian with getStorageAt RPC call
@@ -216,7 +216,7 @@ describe('Account', function () {
 
     it('when signer is proxy owner, should execute the delegatecall', async function () {
       const { signedData, unsignedData } = splitCallData(encodeFunctionCall(
-        'testEvent',
+        'eventTest',
         ['uint256', 'int24', 'address'],
         [ this.mockUint.toString(), this.mockInt, this.mockAddress ]
       ), 1)
@@ -239,7 +239,7 @@ describe('Account', function () {
         signer: this.proxyOwner,
         params: [
           this.testAccountCalls.address,
-          encodeFunctionCall('testEvent', ['uint'], [this.mockUint.toString()])
+          encodeFunctionCall('eventTest', ['uint'], [this.mockUint.toString()])
         ],
         unsignedData: '0x',
         chainId: this.chainId
@@ -249,7 +249,7 @@ describe('Account', function () {
 
     it('when signer is not proxy owner, should revert with NotOwner("<signer>")', async function () {
       const { signedData, unsignedData } = splitCallData(encodeFunctionCall(
-        'testEvent',
+        'eventTest',
         ['uint256', 'int24', 'address'],
         [ this.mockUint.toString(), this.mockInt, this.mockAddress ]
       ), 1)
@@ -265,7 +265,7 @@ describe('Account', function () {
 
     it('when call reverts, metaDelegateCall should revert', async function () {
       const { signedData, unsignedData } = splitCallData(encodeFunctionCall(
-        'testRevert', ['bool'], [true ]
+        'revertTest', ['bool'], [true ]
       ), 0)
       await expect(execMetaTx({
         contract: this.proxyAccount,
@@ -317,7 +317,7 @@ describe('Account', function () {
       this.invalidMockSignature = MOCK_SIG_2
 
       this.validCallData = encodeFunctionCall(
-        'testEvent',
+        'eventTest',
         ['uint256'],
         [ this.mockUint.toString() ]
       )
@@ -328,7 +328,7 @@ describe('Account', function () {
       })
 
       this.invalidCallData = encodeFunctionCall(
-        'testEvent',
+        'eventTest',
         ['uint256'],
         [ this.mockUint2.toString() ]
       )

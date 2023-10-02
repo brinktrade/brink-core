@@ -5,31 +5,31 @@
 
 
 
-### `testRevert(bool forceRevert)` (external)
+### `revertTest(bool forceRevert)` (external)
 
 
 
 
 
-### `testTransferETH(uint256 amount, address recipient)` (external)
+### `ethTransferTest(uint256 amount, address recipient)` (external)
 
 
 
 
 
-### `testEvent(uint256 mockUint)` (external)
+### `eventTest(uint256 mockUint)` (external)
 
 
 
 
 
-### `testEvent(uint256 mockUint, int24 mockInt, address mockAddress)` (external)
+### `eventTest(uint256 mockUint, int24 mockInt, address mockAddress)` (external)
 
 
 
 
 
-### `testStore(uint256 mockUint)` (external)
+### `storeTest(uint256 mockUint)` (external)
 
 
 

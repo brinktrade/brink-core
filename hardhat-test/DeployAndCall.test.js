@@ -25,9 +25,9 @@ describe('DeployAndCall', function () {
 
     const TestAccountCalls = await ethers.getContractFactory('TestAccountCalls')
     const TestEmptyCall = await ethers.getContractFactory('TestEmptyCall')
-    this.testEmptyCall = await TestEmptyCall.deploy()
-    this.emptyCallAddress = this.testEmptyCall.address
-    this.emptyCallData = encodeFunctionCall('testEmpty', [], [])
+    this.emptyTestCall = await TestEmptyCall.deploy()
+    this.emptyCallAddress = this.emptyTestCall.address
+    this.emptyCallData = encodeFunctionCall('emptyTest', [], [])
 
     this.masterAccount = await deployMasterAccount()
     this.deployAndCall = await deployDeployAndCall()
@@ -55,15 +55,15 @@ describe('DeployAndCall', function () {
       beforeEach(async function () {
         this.ethAmount = BN(4).mul(BN18)
   
-        this.testTransferETHCallData = encodeFunctionCall(
-          'testTransferETH',
+        this.ethTransferTestCallData = encodeFunctionCall(
+          'ethTransferTest',
           ['uint', 'address'],
           [this.ethAmount, this.recipient.address]
         )
   
         const params = [
           this.testAccountCalls.address,
-          this.testTransferETHCallData
+          this.ethTransferTestCallData
         ]
 
         this.getDeployAndCallPromiseForProxyOwner = async function (proxyOwner) {
@@ -97,7 +97,7 @@ describe('DeployAndCall', function () {
         expect(await ethers.provider.getCode(this.proxyAccount.address)).to.not.equal('0x')
       })
 
-      it('should delegatecall testTransferETH() to transfer ETH', async function () {
+      it('should delegatecall ethTransferTest() to transfer ETH', async function () {
         const promise = await this.getDeployAndCallPromiseForProxyOwner(this.proxyOwner)
         await promise
   
@@ -118,8 +118,8 @@ describe('DeployAndCall', function () {
 
     describe('with callData that reverts', function () {
       it('should revert with error message from the account calldata execution', async function () {
-        const testRevertCallData = encodeFunctionCall('testRevert', ['bool'], [true])
-        const params = [ this.testAccountCalls.address, testRevertCallData ]
+        const revertTestCallData = encodeFunctionCall('revertTest', ['bool'], [true])
+        const params = [ this.testAccountCalls.address, revertTestCallData ]
   
         const { signature } = await signMetaTx({
           contract: { address: this.proxyAccount.address },
@@ -129,7 +129,7 @@ describe('DeployAndCall', function () {
           chainId: this.chainId
         })
   
-        // data for the testRevert call
+        // data for the revertTest call
         const callData = (await this.masterAccount.connect(this.proxyOwner).populateTransaction.metaDelegateCall.apply(this, [
           ...params, signature, '0x'
         ])).data
