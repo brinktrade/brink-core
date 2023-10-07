@@ -5,6 +5,10 @@ const { solidity } = require('ethereum-waffle')
 chai.use(solidity)
 
 module.exports = {
+  paths: {
+    sources: "./src",
+    tests: './hardhat-test'
+  },
   networks: {
     hardhat: {
       accounts: {

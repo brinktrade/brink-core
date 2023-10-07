@@ -63,7 +63,7 @@ describe('Proxy (deployed by AccountFactory.sol)', function () {
         const testCallsContract = TestAccountCalls.attach(this.proxyAccount.address)
 
         const promise = this.proxyAccount.connect(this.proxyOwner).delegateCall(
-          testAccountCalls.address, encodeFunctionCall('testEvent', ['uint'], [123])
+          testAccountCalls.address, encodeFunctionCall('eventTest', ['uint'], [123])
         )
         await expect(promise).to.emit(testCallsContract, 'MockParamEvent').withArgs(123)
       })

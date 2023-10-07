@@ -2,8 +2,10 @@
   "name": "@brinkninja/core",
   "version": "1.0.0",
   "scripts": {
-    "compile": "hardhat compile",
-    "test": "hardhat test",
+    "build": "forge build",
+    "test": "forge test",
+    "hardhat-compile": "hardhat compile",
+    "hardhat-test": "hardhat test",
     "docgen": "rm -rf docs && solidity-docgen --solc-module solc-0.8.10",
     "vanity-gen": "hardhat run generateVanityAddress.js",
     "exports-gen": "node ./generateExports.js"
@@ -14,10 +16,12 @@
   "devDependencies": {
     "@brinkninja/utils": "^0.3.2",
     "@nomiclabs/hardhat-ethers": "^2.0.2",
+    "@openzeppelin/contracts": "4.8.3",
     "@resolver-engine/core": "^0.3.3",
     "chai": "^4.3.6",
-    "ethers": "^5.1.0",
+    "dotenv": "^16.3.1",
     "ethereum-waffle": "^3.4.0",
+    "ethers": "^5.1.0",
     "hardhat": "^2.1.2",
     "moment": "^2.29.1",
     "require-directory": "^2.1.1",

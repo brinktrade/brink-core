@@ -3,5 +3,5 @@ pragma solidity =0.8.10;
 pragma abicoder v1;
 
 contract TestEmptyCall {
-  function testEmpty() external {}
+  function emptyTest() external {}
 }
